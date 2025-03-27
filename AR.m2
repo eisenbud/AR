@@ -509,9 +509,9 @@ Node
 	 {x_1,x_2,x_3}}
      I = minors(2, mat)
      R = S/I
-     N = coker (R**mat)
+     N = symmetricPower(2,coker (R**mat))
     Text
-     N represents the line bundle $O_{P^1}(1)$.
+     N represents the line bundle $O_{P^1}(2)$.
     Example
      e = leftAlmostSplit N
      M = prune e_0
