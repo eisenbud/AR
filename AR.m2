@@ -466,22 +466,27 @@ Node
      $\omega = O_{C}(-2), O_{C}(-1), O_{C} \cong R,
      O_{C}(-1), ..O_{C}(d-3)$, 
     Example
-     S = ZZ/32003[x_0..x_4]
+     d = 5
+     S = ZZ/32003[x_0..x_d]
      mat = matrix{
-	 {x_0,x_1,x_2,x_3},
-	 {x_1,x_2,x_3,x_4}}
+	 {x_0..x_(d-1)},
+	 {x_1..x_d}}
      I = minors(2, mat)
      R = S/I
-     M = coker (R**mat)
+     RS = map(R,S)
+
+     M1 = coker (R**mat)
+     M = apply(d, i -> symmetricPower(i, M1))
+     M/(X -> pdim pushForward(RS, X))
     Text
-     M represents the line bundle O_(P^1)(1).
+     M_i represents the line bundle $O_(P^1)(i points)$.
     Example
-     e = rightAlmostSplit M
-     N = prune e_2
-     isIsomorphic(N, symmetricPower(2,M))
+     rightAlmostSplit M_1
+     netList (e = apply(d, i-> try (prune rightAlmostSplit M_i) else false))
+     netList (E = apply(e, ee -> if ee=!=false then summands ee_1))
     Text
-     This shows that N represents the line bundle
-     O_(P^1)(2).
+     Here M_i represents the line bundle
+     O_(P^1)(i points).
   SeeAlso
    leftAlmostSplit
 ///
