@@ -559,4 +559,21 @@ C = res(coker vars R, LengthLimit => 6)
 C.dd
 m = matrix"-x,-y;z,x"
 M1 = coker m
-rightAlmostSplit M1
+C = rightAlmostSplit M1
+summands C_1
+C_1_[0]
+
+-- Current example: A2 singularity
+restart
+debug needsPackage "AR"
+kk = ZZ/32003
+R = kk[x,y,z,w]/(x*w-y*z)
+C = res(coker vars R, LengthLimit => 6)
+C.dd
+m = matrix"x,y;z,w"
+M1 = prune coker m
+C = rightAlmostSplit M1
+M2 = C_2
+assert not first isIsomorphic(M1, M2)
+assert first isIsomorphic(translate M1, M2) -- same
+assert first isIsomorphic(translate M2, M1) -- same
