@@ -112,7 +112,7 @@ rightAlmostSplit Module := Complex => M -> (
     psE := prune socle E;
     f := psE.cache.pruningMap;
     cov := inducedMap (psE, cover psE);
-    yonedaExtension (i*f*cov)
+    prune yonedaExtension (i*f*cov)
     )
     
 leftAlmostSplit = method()
@@ -549,3 +549,14 @@ uninstallPackage "AR"
 restart
 installPackage "AR"
 viewHelp "AR"
+
+-- Current example: A1 singularity
+restart
+debug needsPackage "AR"
+kk = ZZ/32003
+R = kk[x,y,z]/(x^2-y*z)
+C = res(coker vars R, LengthLimit => 6)
+C.dd
+m = matrix"-x,-y;z,x"
+M1 = coker m
+rightAlmostSplit M1
