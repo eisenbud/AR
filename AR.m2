@@ -112,10 +112,11 @@ rightAlmostSplit Module := Complex => M -> (
     E := Ext^1(M, N);
     sE := socle E;
     i := inducedMap(E, sE);
-    psE := prune socle E;
-    f := psE.cache.pruningMap;
-    cov := inducedMap (psE, cover psE);
-    prune yonedaExtension (i*f*cov)
+    prune yonedaExtension (i*sE_{0})
+    -- psE := prune socle E;
+    -- f := psE.cache.pruningMap;
+    -- cov := inducedMap (psE, cover psE);
+    -- prune yonedaExtension (i*f*cov)
     )
     
 leftAlmostSplit = method()
@@ -188,12 +189,18 @@ knorr(Matrix, Matrix, Symbol, Symbol) := (phi, psi, u, v) -> (
 AnFactorizations = method()
 -- R is in 2 variables, n >= 1
 AnFactorizations(ZZ, Ring) := List => (n, R) -> (
-    x := R_0;
-    y := R_1;
+    -- equation is x^2 + y^(n+1) = 0
+    x := R_0; -- degree n+1
+    y := R_1; -- degree 2
     if n == 1 then return {matrix{{x}}, matrix{{y}}};
-    for i from 1 to n list (
-        m1 := matrix{{x, -y^i}, {y^(n+1-i), x}};
-        m2 := matrix{{x, y^i}, {-y^(n+1-i), x}};
+    for i from 1 to n//2 + 1 list (
+        m1 := map(R^{(n+1), (2*n+2-2*i)},
+                  R^{0, (n+1-2*i)},
+                  {{x, -y^i}, {y^(n+1-i), x}});
+        m2 := map(
+            source m1,
+            R^{-(n+1), -2*i},
+            {{x, y^i}, {-y^(n+1-i), x}});
         {m1, m2}
         )
     )
@@ -612,7 +619,6 @@ m = matrix"-x,-y;z,x"
 M1 = coker m
 C = rightAlmostSplit M1
 summands C_1
-C_1_[0]
 
 -- Current example: A2 singularity
 restart
@@ -686,7 +692,7 @@ for f in facs list product f
 restart
 debug needsPackage "AR"
 kk = ZZ/32003
-R = kk[a,b, Degrees => {2,1}]/(a^2+b^4)
+R = kk[a,b, Degrees => {4,2}]/(a^2+b^4)
 R = kk[a,b]/(a^2+b^4)
 facs = AnFactorizations(3, R)
 M = AnModules(3, R)
@@ -700,5 +706,41 @@ N = prune translate M_1
     psE := prune socle E;
     f := psE.cache.pruningMap;
     cov := inducedMap (psE, cover psE);
-    prune yonedaExtension (i*f*cov)
+    prune yonedaExtension (i*o18)
 M_1
+
+-- n = 4
+restart
+debug needsPackage "AR"
+kk = ZZ/32003
+R = kk[a,b, Degrees => {5,2}]/(a^2+b^5)
+facs = AnFactorizations(4, R)
+M = AnModules(4, R)
+M/isHomogeneous
+rightAlmostSplit M_1
+for f in facs list product f
+
+N = prune translate M_1
+netList (SESs = for m in M list rightAlmostSplit m)
+netList for s in SESs list summands s_1
+
+M
+
+-- n = 5
+restart
+debug needsPackage "AR"
+kk = ZZ/101
+R = kk[a,b, Degrees => {6,2}]/(a^2+b^6)
+facs = AnFactorizations(5, R)
+M = AnModules(5, R)
+M/isHomogeneous
+for f in facs list product f
+netList (SESs = for m in M list rightAlmostSplit m)
+netList for s in SESs list summands s_1
+for m in M list translate m
+netList (SESs = for m in M list leftAlmostSplit m)
+netList for s in SESs list summands s_1
+C = res(coker vars R, LengthLimit => 5)
+ZZ/101[x]; factor(x^2+1)
+M = flatten(M/summands)
+for m in M list prune translate m
