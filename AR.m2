@@ -21,6 +21,9 @@ export {
     "translate",
     "inverseTranslate",
     "socle",
+    "knorr", -- knoerrer is correct...
+    "AnFactorizations",
+    "AnModules",
 
     "rightAlmostSplit",
     "leftAlmostSplit",
@@ -152,6 +155,54 @@ rightAlmostSplit M
 M
 prune M == prune L_0
 ///
+
+
+knorr = method()
+knorr(Matrix, Matrix, Symbol) := (phi, psi, u) -> (
+    S := ring phi;
+    A := S[u, Join => false];
+    phiA := sub(phi, A);
+    psiA := sub(psi, A);
+    m1 := matrix{
+        {psiA, -A_0 ** id_(target psiA)},
+        {A_0 ** id_(target phiA), phiA}};
+    m2 := matrix{
+        {phiA, A_0 ** id_(target phiA)},
+        {-A_0 ** id_(target psiA), psiA}};
+    (m1,m2)
+    )
+knorr(Matrix, Matrix, Symbol, Symbol) := (phi, psi, u, v) -> (
+    S := ring phi;
+    A := S[u, v, Join => false];
+    phiA := sub(phi, A);
+    psiA := sub(psi, A);
+    m1 := matrix{
+        {phiA, A_0 ** id_(target phiA)},
+        {-A_1 ** id_(target psiA), psiA}};
+    m2 := matrix{
+        {psiA, -A_0 ** id_(target psiA)},
+        {A_1 ** id_(target phiA), phiA}};
+    (m1,m2)
+    )
+
+AnFactorizations = method()
+-- R is in 2 variables, n >= 1
+AnFactorizations(ZZ, Ring) := List => (n, R) -> (
+    x := R_0;
+    y := R_1;
+    if n == 1 then return {matrix{{x}}, matrix{{y}}};
+    for i from 1 to n list (
+        m1 := matrix{{x, -y^i}, {y^(n+1-i), x}};
+        m2 := matrix{{x, y^i}, {-y^(n+1-i), x}};
+        {m1, m2}
+        )
+    )
+
+AnModules = method()
+AnModules(ZZ, Ring) := List => (n, R) -> (
+    facs := AnFactorizations(n, R);
+    for f in facs list coker first f
+    )
 
 -* Documentation section *-
 beginDocumentation()
@@ -577,3 +628,77 @@ M2 = C_2
 assert not first isIsomorphic(M1, M2)
 assert first isIsomorphic(translate M1, M2) -- same
 assert first isIsomorphic(translate M2, M1) -- same
+
+-- Current example: A1 singularity, via knorr
+restart
+debug needsPackage "AR"
+kk = ZZ/32003
+
+R = kk[a]
+phi = matrix{{a}}
+(phi2, psi2) = knorr(phi, phi, symbol b, symbol c)
+phi2 * psi2
+R = kk[a,b]
+phi = matrix{{a}}
+
+psi = matrix{{b}}
+(phi3,psi3) = knorr(phi,psi,c)
+phi3 * psi3
+(phi4,psi4) = knorr(phi3,psi3,d,e)
+phi4 * psi4
+
+(phi3,psi3) = knorr(phi,psi,u)
+phi3 * psi3
+
+R = kk[x,y,z,w]
+phi = matrix{{x,y},{z,w}}
+psi = matrix {{-w, y}, {z, -x}}
+phi * psi
+(phi5, psi5) = knorr(phi, psi, symbol u)
+phi5 * psi5
+(phi6, psi6) = knorr(phi5, psi5, symbol s, symbol t)
+phi6 * psi6
+
+
+
+C = res(coker vars R, LengthLimit => 6)
+coker C.dd_3
+relations coker C.dd_3
+det(C.dd_3 _{0..10})
+C = rightAlmostSplit M1
+
+M2 = C_2
+assert not first isIsomorphic(M1, M2)
+assert first isIsomorphic(translate M1, M2) -- same
+assert first isIsomorphic(translate M2, M1) -- same
+
+-- Example: An singularity, via knorr
+restart
+debug needsPackage "AR"
+kk = ZZ/32003
+R = kk[a,b]
+facs = AnFactorizations(3, R)
+for f in facs list product f
+facs = AnFactorizations(6, R)
+for f in facs list product f
+
+-- n = 3
+restart
+debug needsPackage "AR"
+kk = ZZ/32003
+R = kk[a,b, Degrees => {2,1}]/(a^2+b^4)
+R = kk[a,b]/(a^2+b^4)
+facs = AnFactorizations(3, R)
+M = AnModules(3, R)
+rightAlmostSplit M_1
+for f in facs list product f
+
+N = prune translate M_1
+    E = Ext^1(M_1, N)
+    sE := socle E;
+    i := inducedMap(E, sE);
+    psE := prune socle E;
+    f := psE.cache.pruningMap;
+    cov := inducedMap (psE, cover psE);
+    prune yonedaExtension (i*f*cov)
+M_1
