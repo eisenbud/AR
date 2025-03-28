@@ -111,6 +111,7 @@ rightAlmostSplit = method()
 rightAlmostSplit Module := Complex => M -> (
     --produces 0->N->E->M->0 almost split
     N := translate M;
+    if N == 0 then return complex {N};
     E := Ext^1(M, N);
     sE := socle E;
     i := inducedMap(E, sE);
@@ -130,6 +131,7 @@ leftAlmostSplit = method()
 leftAlmostSplit Module := Complex => N -> (
     --produces 0->N->E->M->0 almost split
     M := inverseTranslate N;
+    if M == 0 then return complex {M};
     rightAlmostSplit M
     )
 ///
@@ -625,6 +627,7 @@ C.dd
 m = matrix"-x,-y;z,x"
 M1 = coker m
 C = rightAlmostSplit M1
+C = rightAlmostSplit R^1
 summands C_1
 
 -- Current example: A2 singularity
