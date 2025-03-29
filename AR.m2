@@ -32,6 +32,8 @@ export {
     "omega",
     }
 
+myRing = GF 8
+
 -* Code section *-
 syzygy = method()
 syzygy(ZZ, Module) := Module => (d,M) -> (
@@ -112,7 +114,12 @@ rightAlmostSplit Module := Complex => M -> (
     E := Ext^1(M, N);
     sE := socle E;
     i := inducedMap(E, sE);
-    prune yonedaExtension (i*sE_{0})
+    d := max degrees sE;
+    locs := positions(degrees sE, x -> x === d);
+    if #locs > 1 then (
+        << "warning: E has " << #locs << " socle generators in highest degree" << endl
+        );
+    prune yonedaExtension (i*sE_{last locs})
     -- psE := prune socle E;
     -- f := psE.cache.pruningMap;
     -- cov := inducedMap (psE, cover psE);
@@ -775,8 +782,6 @@ for m in M list prune translate m
 
 kk = ZZ/(nextPrime (1 + nextPrime 30000)); R = kk[x]; factor(x^2+1)
  
- 
-
 -- Dn, n is odd
 restart
 debug needsPackage "AR"
@@ -789,23 +794,44 @@ m1 = matrix{{alpha}}
 m2 = matrix{{beta}}
 A = coker m1
 B = coker m2
+-- node at A: Y1 --> A --> X1
+-- node at B: X1 --> B --> Y1
   ses = rightAlmostSplit A
   summands ses_1
-Y1 = first oo
-  ses = rightAlmostSplit B
-X1 = ses_1
-  assert not first isIsomorphic(X1, Y1)
+  Y1 = first oo
+  ses = leftAlmostSplit A
+  summands ses_1
+  X1 = ses_1
+  assert not first isIsomorphic(Y1, X1)
+
+  -- at Y1: 
+  ses = rightAlmostSplit Y1
+  isIsomorphic(ses_2, X1)
+  summands ses_1 -- B, N1
+  N1 = last oo -- warning: might be the first element of summands
   ses = rightAlmostSplit X1
   isIsomorphic(ses_2, Y1)
-  ses = rightAlmostSplit Y1
-  isIsomorphic(ses_2, X1)  
+  summands ses_1 -- 3 elements here: R, M1, A.
+  M1 = oo_1
+
+  -- all these give false
+  isIsomorphic(M1, X1)
+  isIsomorphic(M1, Y1)
+  isIsomorphic(M1, N1)  
+
+  mods = {A, B, X1, Y1, M1, N1}
+  ses = rightAlmostSplit N1
+  sums = summands ses_1
+  isIsomorphic(sums_0, sums_1)
+  for m in mods list first isIsomorphic(sums_0, m)
+  for m in mods list first isIsomorphic(sums_1, m)
+  X2 = sums_0
+  mods = {A, B, X1, Y1, M1, N1, X2}
+
+  ses = rightAlmostSplit X2
+  isIsomorphic(ses_2, X2)
+  sums = summands ses_1
+  for m in mods list first isIsomorphic(sums_1, m)
+  for m in mods list first isIsomorphic(sums_0, m)
   
-isIsomorphic(M3, ses_2) 
-ses = rightAlmostSplit M2
-summands(ses_1)
-isIsomorphic(ses_1, M3)
-isIsomorphic(ses_1, M4)
-translate M1
-translate M2
-prune translate M3
-prune translate M4
+
