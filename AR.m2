@@ -744,3 +744,68 @@ C = res(coker vars R, LengthLimit => 5)
 ZZ/101[x]; factor(x^2+1)
 M = flatten(M/summands)
 for m in M list prune translate m
+
+-- n = 5
+restart
+debug needsPackage "AR"
+kk = ZZ/32003
+kk = ZZ/101
+kk = ZZ/30013
+--kk = QQ[i, DegreeRank => 0]/(i^2+1)
+R = kk[x,b, Degrees => {6,2}]/(x^2+b^6)
+--R = kk[a,b]/(a^2+b^6)
+facs = AnFactorizations(5, R)
+M = AnModules(5, R)
+M = M/(m -> summands m)//flatten
+M/(m -> summands(m, ExtendGroundField => 2))
+--summands(M_2, ExtendGroundField => GF(32003, 2))
+
+M/isHomogeneous
+(M1, M2, N1, N2) = toSequence M
+netList (SESs = for m in M list rightAlmostSplit m)
+SESs/(c -> prune HH c)
+netList for s in SESs list summands s_1
+for m in M list translate m
+netList (SESs = for m in M list leftAlmostSplit m)
+netList for s in SESs list summands s_1
+C = res(coker vars R, LengthLimit => 5)
+ZZ/101[x]; factor(x^2+1)
+M = flatten(M/summands)
+for m in M list prune translate m
+
+kk = ZZ/(nextPrime (1 + nextPrime 30000)); R = kk[x]; factor(x^2+1)
+ 
+ 
+
+-- Dn, n is odd
+restart
+debug needsPackage "AR"
+kk = ZZ/101
+n = 5
+R = kk[x,y, Degrees => {n-2, 2}]/(x^2*y + y^(n-1))
+alpha = y
+beta = x^2 + y^(n-2)
+m1 = matrix{{alpha}}
+m2 = matrix{{beta}}
+A = coker m1
+B = coker m2
+  ses = rightAlmostSplit A
+  summands ses_1
+Y1 = first oo
+  ses = rightAlmostSplit B
+X1 = ses_1
+  assert not first isIsomorphic(X1, Y1)
+  ses = rightAlmostSplit X1
+  isIsomorphic(ses_2, Y1)
+  ses = rightAlmostSplit Y1
+  isIsomorphic(ses_2, X1)  
+  
+isIsomorphic(M3, ses_2) 
+ses = rightAlmostSplit M2
+summands(ses_1)
+isIsomorphic(ses_1, M3)
+isIsomorphic(ses_1, M4)
+translate M1
+translate M2
+prune translate M3
+prune translate M4
