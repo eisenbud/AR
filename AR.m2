@@ -8,13 +8,17 @@ newPackage(
         { Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => ""}},
     PackageExports => {
 	"Complexes",
-	"DirectSummands"
+	"DirectSummands",
+    "Isomorphism"
 	},
     AuxiliaryFiles => false,
     DebuggingMode => true
     )
 
 export {
+    "isIso",
+    "isomorphism",
+    "Isomorphisms",
     "canonicalDual",
     "transposeModule",
     "syzygy",
@@ -35,6 +39,33 @@ export {
 myRing = GF 8
 
 -* Code section *-
+
+isIso = method()
+isIso(Module, Module) := Boolean => (M, N) -> (
+    (eq, iso) := isIsomorphic(M, N);
+    if eq then (
+        M.cache.Isomorphisms ??= new MutableHashTable;
+        M.cache.Isomorphisms#N = iso;
+        );
+    eq
+    )
+
+isomorphism = method()
+isomorphism(Module, Module) := Matrix => (M, N) -> (
+    result := M.cache.Isomorphisms#N ??= last isIsomorphic(M,N);
+    if result === null then error "modules not isomorphic";
+    result
+    )
+
+-- returns the list of indices of the modules
+-- of L isomorphic to M
+isIso(Module, List) := List => (M, L) -> (
+    for i from 0 to #L-1 list (
+        good := isIso(M, L#i);
+        if good then i else continue
+        )
+    )
+
 syzygy = method()
 syzygy(ZZ, Module) := Module => (d,M) -> (
     F := freeResolution(M, LengthLimit => d);
@@ -836,5 +867,3 @@ B = coker m2
   sums = summands ses_1
   for m in mods list first isIsomorphic(sums_1, m)
   for m in mods list first isIsomorphic(sums_0, m)
-  
-
