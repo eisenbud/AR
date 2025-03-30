@@ -11,8 +11,6 @@ D5 = new ARQuiver
 explore(D5, 10, {M}, {symbol M})
 see D5
 
-keysD5 = keys D5
-hashTable for i from 0 to #keysD5 - 1 list D5#(keys => i
 
 D5H = hashTable for p in pairs D5 list (
     (p#0, if instance(p#1, MutableList) then toList p#1 else p#1)
@@ -20,10 +18,40 @@ D5H = hashTable for p in pairs D5 list (
 count = 0;
 H = hashTable for k in keys D5 list (count = count+1; k => count)
 
-for p in pairs D5H list (
-    {H#(p#0), apply(p#1, m -> H#m)}
+D5quiver = for p in pairs D5H list (
+    {H#(p#0), try H#(known_D5 syzygy(1, p#0)), try H#(known_D5 translate p#0), apply(p#1, m -> H#m)}
     )
-netList oo
+netList D5quiver
+
+-- D5, dim2
+restart
+debug needsPackage "AR"
+load "./quiver.m2"
+kk = ZZ/101
+n = 5
+R = kk[x,y,z, Degrees => {n-2, 2, n-1}]/(x^2*y + y^(n-1) + z^2)
+M = prune syzygy(2, coker vars R)
+
+D5 = new ARQuiver
+explore(D5, 10, {M}, {symbol M})
+see D5
+
+debug DirectSummands
+tallySummands keys D5
+
+D5H = hashTable for p in pairs D5 list (
+    (p#0, if instance(p#1, MutableList) then toList p#1 else p#1)
+    )
+count = 0;
+H = hashTable for k in keys D5 list (count = count+1; k => count)
+
+D5quiver = for p in pairs D5H list (
+    m0 := try (known_D5 p#0);
+    {H#m0, try H#(known_D5 syzygy(1, p#0)), try H#(known_D5 translate p#0), apply(p#1, m -> H#m)}
+    )
+netList D5quiver
+
+
 
 -- D6
 restart
