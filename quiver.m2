@@ -11,22 +11,21 @@ ARQuiver = new Type of MutableHashTable
 ARQuiver.GlobalAssignHook = globalAssignFunction
 ARQuiver.GlobalReleaseHook = globalReleaseFunction
 
-known = (Q, M) -> if M =!= null then scan(keys Q, N -> if first isIsomorphic(N, M) then break N)
+known = memoize((Q, M) -> if M =!= null then scan(keys Q, N -> if first isIsomorphic(N, M) then break N))
 index(MutableHashTable, Module) := (Q, M) -> try Q#(known(Q, M))
 
 ARQuiver _ ZZ := (Q, i) -> first select(keys Q, M -> i == index_ModuleDictionary M)
 
 net ARQuiver := Q -> hashTable apply(keys Q, M -> { index_ModuleDictionary M, M })
-see ARQuiver := Q -> hashTable apply(pairs Q,
-    (M, L) -> index_ModuleDictionary M => {
-	runLengthEncode apply(L.outgoing, index_ModuleDictionary),
-	runLengthEncode apply(L.incoming, index_ModuleDictionary),
-    }
-    -- (M, L) -> net moduleAbbrv(known_ModuleDictionary M, M) => {
-    -- 	runLengthEncode apply(L.outgoing, N -> net moduleAbbrv(known_ModuleDictionary N, N)),
-    -- 	runLengthEncode apply(L.incoming, N -> net moduleAbbrv(known_ModuleDictionary N, N)),
-    -- }
-)
+see ARQuiver := Q -> (
+    H := hashTable apply(pairs Q, (M, L) -> index_ModuleDictionary M => {
+	    runLengthEncode apply(L.outgoing, index_ModuleDictionary),
+	    runLengthEncode apply(L.incoming, index_ModuleDictionary),
+	    try index_ModuleDictionary L.translate,
+	    try index_ModuleDictionary L.translate'
+	});
+    netList(Boxes => false, apply(pairs H, (i, x) ->
+	    {x#0, " <- ", i, " <- ", x#1, " | ", x#2, " <~ ", i, " <~ ", x#3})))
 
 Vertex = new SelfInitializingType of BasicList
 net Vertex := M -> net moduleAbbrv(M, M)
