@@ -57,92 +57,6 @@ ingoing = hashTable{1 => {4,5,7}, 2 => {7},
 translates = hashTable {1 => {1}, 2 => {},
     3 => {3}, 4 => {5}, 5 => {4}, 7 => {7}}
 
-restart
-loadPackage"AR"
-dot = method()
-dot(List, List) := List => (L1,L2) ->
-    sum(#L1, i-> L1_i*L2_i)
-theta = method()
-theta (List,List) := List => (L,ingoingList) ->
-     dot(L,ingoingList)
-theta(ZZ, List, List, List) := List => (i, L,ingoingList,tauList) -> (
-    if i === 0 then return L;
-    if i === 1 then return theta (L, ingoingList);
-    theta(pos theta(i-1,
-	    L,ingoingList,tauList),ingoingList) -
-         tau (pos theta(i-2,
-	    L, ingoingList, tauList), tauList)
-    )
-tau = method()
-tau (List,List) := List => (L, tauList) ->
-     dot(L,tauList)
-pos = method()
-pos List := List => L -> apply(#L, i->
-    if L_i > 0 then L_i else 0)
-neg = method()
-neg List := List => L -> apply(#L, i->
-    if L_i < 0 then - L_i else 0)
-ingoingList = {
-    {0,0,1,1,1},
-    {0,0,0,0,1},
-    {1,0,0,0,0},
-    {1,0,0,0,0},
-    {1,1,0,0,0}}
-
-tauList = {
-    {1,0,0,0,0},
-    {0,1,0,0,0},
-    {0,0,0,1,0},
-    {0,0,1,0,0},
-    {0,0,0,0,1}
-    }
-(x1,x3,x4,x5,x7) =
-    toSequence entries id_(ZZ^5)
-
-theta(3, x4, ingoingList, tauList)
-netList apply(10,
-    i-> theta(i,x7, ingoingList, tauList))
-
-
--- R = ZZ[x_1, x_2, x_3, x_4, x_5, x_7]
--- ingoing = transpose matrix{{x_4 + x_5 + x_7,
---         x_7,
---         x_7,
---         x_1,
---         x_1,
---         x_1+x_2+x_3
---         }}
--- coeffs = L -> flatten entries last coefficients(L, Monomials => gens R)
--- theta = method()
--- theta RingElement := RingElement => L -> (
---     (matrix{coeffs L} * ingoing)_(0,0)
---     )
--- tau = method()
--- taumatrix = transpose matrix{{
---     x_1,
---     0,
---     x_3,
---     x_5,
---     x_4,
---     x_7}}
--- tau RingElement := RingElement => L -> (
---     (matrix{coeffs L} * taumatrix)_(0,0)    
---     )
--- pos = L -> (
---     cfs := coeffs L;
---     (matrix{{for a in cfs list if a > 0 then a else 0}} * transpose vars R)_(0,0)
---     )
--- neg = L -> (
---     cfs := coeffs L;
---     (matrix{{for a in cfs list if a < 0 then -a else 0}} * transpose vars R)_(0,0)
---     ) 
--- theta(ZZ, RingElement) := RingElement => (i, L) -> (
---     if i === 1 then return theta L;
---     theta(pos theta(i-1, L)) - tau (pos theta(i-2, L))
---     )
--- theta (x_4)
--- theta(1, x_4)
--- theta(2, x_4)
 -- D6
 restart
 debug needsPackage "AR"
@@ -296,6 +210,94 @@ ses = rightAlmostSplit Ms_14
   sums = summands ses_1
   isIso(sums_0, Ms) -- old
 
+--------------------------
+-- E7, dim2 --------------
+--------------------------
+-- E7 "by hand" using AR code
+restart
+debug needsPackage "AR"
+load "./quiver.m2"
+kk = ZZ/101
+R = kk[x,y,z, Degrees => {6, 4, 9}]/(x^3 + x*y^3 + z^2)
+M = prune syzygy(2, coker vars R)
+res coker lift(relations M, ambient R)
+Ms = {R^1, M}
+
+E7 = new ARQuiver
+explore(E7, 5, {M}, {symbol M}) 
+
+ses = rightAlmostSplit Ms_1
+  isIso(ses_0, Ms_1) -- old
+  isIso(ses_2, Ms_1) -- old
+  sums = summands ses_1
+  isIso(sums_1, Ms) -- new
+  Ms = append(Ms, sums_1)
+  netList Ms
+
+ses = rightAlmostSplit Ms_2
+  isIso(ses_0, Ms_2) -- old
+  isIso(ses_2, Ms_2) -- old
+  sums = summands ses_1
+  isIso(sums_0, Ms) -- new
+  isIso(sums_1, Ms) -- old
+  Ms = append(Ms, sums_0)
+  netList Ms
+
+ses = rightAlmostSplit Ms_3
+  isIso(ses_0, Ms_3) -- old
+  isIso(ses_2, Ms_3) -- old
+  sums = summands ses_1
+  isIso(sums_0, Ms) -- new
+  isIso(sums_1, Ms) -- new
+  isIso(sums_0, sums_1)
+  isIso(sums_2, Ms) -- old
+  Ms = append(Ms, sums_0)
+  Ms = append(Ms, sums_1)
+  netList Ms
+
+ses = rightAlmostSplit Ms_4
+  isIso(ses_0, Ms_4) -- old
+  isIso(ses_2, Ms_4) -- old
+  sums = summands ses_1
+  isIso(sums_0, Ms) -- new
+  isIso(sums_1, Ms) -- old
+  Ms = append(Ms, sums_0)
+  netList Ms
+
+ses = rightAlmostSplit Ms_5
+  isIso(ses_0, Ms_5) -- old
+  isIso(ses_2, Ms_5) -- old
+  sums = summands ses_1
+  #sums
+  isIso(sums_0, Ms) -- old
+
+ses = rightAlmostSplit Ms_6
+  isIso(ses_0, Ms_6) -- old
+  isIso(ses_2, Ms_6) -- old
+  sums = summands ses_1
+  #sums
+  isIso(sums_0, Ms) -- new
+  isIso(sums_1, Ms) -- old
+  Ms = append(Ms, sums_0)
+  netList Ms
+
+quiv = for m in drop(Ms, 1) list (
+    ses := rightAlmostSplit m;
+    sums := summands ses_1;
+    { first isIso(ses_0, Ms),
+     sort flatten for m in sums list isIso(m, Ms),
+     first isIso(ses_2, Ms)}
+    )
+makeTauList = method()
+makeTauList List := (L) -> (
+    )
+
+netList oo
+ses = leftAlmostSplit Ms_1
+  isIso(ses_0, Ms)
+  sums = summands ses_1
+  for m in sums list isIso(m, Ms)
+  
 --------------------------
 -- Elliptic curve --------
 --------------------------
