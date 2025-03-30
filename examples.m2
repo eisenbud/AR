@@ -51,8 +51,51 @@ D5quiver = for p in pairs D5H list (
     )
 netList D5quiver
 
+verts = {1,2,3,4,5,7}
+ingoing = hashTable{1 => {4,5,7}, 2 => {7},
+    3 => {7}, 4 => {1}, 5 => {1}, 7 => {1,2,3}}
+translates = hashTable {1 => {1}, 2 => {},
+    3 => {3}, 4 => {5}, 5 => {4}, 7 => {7}}
 
-
+R = ZZ[x_1, x_2, x_3, x_4, x_5, x_7]
+ingoing = transpose matrix{{x_4 + x_5 + x_7,
+        x_7,
+        x_7,
+        x_1,
+        x_1,
+        x_1+x_2+x_3
+        }}
+coeffs = L -> flatten entries last coefficients(L, Monomials => gens R)
+theta = method()
+theta RingElement := RingElement => L -> (
+    (matrix{coeffs L} * ingoing)_(0,0)
+    )
+tau = method()
+taumatrix = transpose matrix{{
+    x_1,
+    0,
+    x_3,
+    x_5,
+    x_4,
+    x_7}}
+tau RingElement := RingElement => L -> (
+    (matrix{coeffs L} * taumatrix)_(0,0)    
+    )
+pos = L -> (
+    cfs := coeffs L;
+    (matrix{{for a in cfs list if a > 0 then a else 0}} * transpose vars R)_(0,0)
+    )
+neg = L -> (
+    cfs := coeffs L;
+    (matrix{{for a in cfs list if a < 0 then -a else 0}} * transpose vars R)_(0,0)
+    ) 
+theta(ZZ, RingElement) := RingElement => (i, L) -> (
+    if i === 1 then return theta L;
+    theta(pos theta(i-1, L)) - tau (pos theta(i-2, L))
+    )
+theta (x_4)
+theta(1, x_4)
+theta(2, x_4)
 -- D6
 restart
 debug needsPackage "AR"
