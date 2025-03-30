@@ -12,7 +12,7 @@ ARQuiver.GlobalAssignHook = globalAssignFunction
 ARQuiver.GlobalReleaseHook = globalReleaseFunction
 
 known = (Q, M) -> if M =!= null then scan(keys Q, N -> if first isIsomorphic(N, M) then break N)
-index(ARQuiver, Module) := (Q, M) -> try Q#(known(Q, M))
+index(MutableHashTable, Module) := (Q, M) -> try Q#(known(Q, M))
 
 ARQuiver _ ZZ := (Q, i) -> first select(keys Q, M -> i == index_ModuleDictionary M)
 
