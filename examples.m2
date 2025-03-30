@@ -6,10 +6,24 @@ kk = ZZ/101
 n = 5
 R = kk[x,y, Degrees => {n-2, 2}]/(x^2*y + y^(n-1))
 M = prune syzygy(2, coker vars R)
-summands M
-setAttribute(M, ReverseDictionary, Label{symbol M, 0})
-explore0(5, M)
-see quiver
+
+D5 = new ARQuiver
+explore(D5, 10, {M}, {symbol M})
+see D5
+
+keysD5 = keys D5
+hashTable for i from 0 to #keysD5 - 1 list D5#(keys => i
+
+D5H = hashTable for p in pairs D5 list (
+    (p#0, if instance(p#1, MutableList) then toList p#1 else p#1)
+    )
+count = 0;
+H = hashTable for k in keys D5 list (count = count+1; k => count)
+
+for p in pairs D5H list (
+    {H#(p#0), apply(p#1, m -> H#m)}
+    )
+netList oo
 
 -- D6
 restart
