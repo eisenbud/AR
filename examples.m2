@@ -169,10 +169,15 @@ ses = rightAlmostSplit Ms_14
 --------------------------
 restart
 debug needsPackage "AR"
-kk = ZZ/101
+kk = ZZ/23
 R = kk[x,y,z]/(y^2*z-x*(x-z)*(x-3*z))
+needsPackage "RationalPoints2"
+rationalPoints(ideal R, Projective => true)
+pts23 = {{1, 0, 1}, {1, 6, 3}, {1, -6, 3}, {1, 5, 5}, {1, -5, 5}, {1, 8, 6}, {1, -8, 6}, {1, 2, 7}, {1, -2, 7}, {1, 0, 8}, {1, 8, 9}, {1, -8, 9}, {1, 2, 11}, {1, -2, 11}, {1, 6, -5}, {1, -6, -5}, {1, 1, -4}, {1, -1, -4}, {1, 5, -3}, {1, -5, -3}, {1, 1, -2}, {1, -1, -2}, {0, 1, 0}, {0, 0, 1}}
+trim minors(2, matrix{pts23_0} || vars R)
+M = prune module oo
 
-M = prune syzygy(4, coker vars R)
+--M = prune syzygy(4, coker vars R)
 summands M
 Ms = {R^1, M}
 
@@ -184,11 +189,20 @@ ses = rightAlmostSplit Ms_1
   Ms = append(Ms, sums_0)
   netList Ms
 
-ses = leftAlmostSplit Ms_1
+ses = rightAlmostSplit Ms_2
   isIso(ses_0, Ms)
   isIso(ses_2, Ms)
   sums = summands ses_1
   for x in sums list isIso(x, Ms)
+  Ms = append(Ms, sums_0)
+
+ses = rightAlmostSplit Ms_3
+  isIso(ses_0, Ms)
+  isIso(ses_2, Ms)
+  sums = summands ses_1
+  for x in sums list isIso(x, Ms)
+  Ms = append(Ms, sums_0)
+
   
   isIso(ses_2, Ms) -- old
   sums = summands ses_1
@@ -197,3 +211,26 @@ ses = leftAlmostSplit Ms_1
   netList Ms
   
 
+
+----- RNC degree 5 --------------
+restart
+debug needsPackage "AR"
+load "./quiver.m2"
+     d = 5
+     S = ZZ/32003[x_0..x_d]
+     mat = matrix{
+	 {x_0..x_(d-1)},
+	 {x_1..x_d}}
+ 
+     I = minors(2, mat)
+     R = S/I
+
+     M = coker (mat ** R)
+     RNC5 = new ARQuiver
+     explore(RNC5, 5, {M}, {symbol M})
+     see RNC5
+         
+     RS = map(R,S)
+     M1 = coker (R**mat)
+     M = apply(d, i -> symmetricPower(i, M1))
+     M/(X -> pdim pushForward(RS, X))
