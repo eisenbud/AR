@@ -257,89 +257,31 @@ AnModules(ZZ, Ring) := List => (n, R) -> (
 -- of a quiver.
 
 
--- coeffs = L -> flatten entries lift(last coefficients(L, Monomials => gens R), ZZ)
--- theta = method()
--- theta RingElement := RingElement => L -> (
---     (matrix{coeffs L} * ingoing)_(0,0)
---     )
--- tau = method()
--- tau RingElement := RingElement => L -> (
---     (matrix{coeffs L} * taumatrix)_(0,0)    
---     )
--- theta(ZZ, RingElement) := RingElement => (i, L) -> (
---     if i === 0 then return L;
---     if i === 1 then return theta L;
---     theta(pos theta(i-1, L)) - tau (pos theta(i-2, L))
---     )
-
--- R = ZZ[x_1, x_2, x_3, x_4, x_5, x_7]
--- ingoing = transpose matrix{{x_4 + x_5 + x_7,
---         x_7,
---         x_7,
---         x_1,
---         x_1,
---         x_1+x_2+x_3
---         }}
--- taumatrix = transpose matrix{{
---     x_1,
---     0,
---     x_3,
---     x_5,
---     x_4,
---     x_7}}
-
-///
-R = ZZ[x_1, x_3, x_4, x_5, x_7]
-ingoing = transpose matrix{{x_4 + x_5 + x_7,
-        x_7,
-        x_1,
-        x_1,
-        x_1+x_3
-        }}
-taumatrix = transpose matrix{{
-    x_1,
-    x_3,
-    x_5,
-    x_4,
-    x_7}}
-
-pos = L -> (
-    R := ring L;
-    cfs := coeffs L;
-    (matrix{for a in cfs list if a > 0 then a else 0}
-        * transpose vars R)_(0,0)
+dot = method()
+dot(List, List) := List => (L1,L2) ->
+    sum(#L1, i-> L1_i*L2_i)
+theta = method()
+theta (List,List) := List => (L,ingoingList) ->
+     dot(L,ingoingList)
+theta(ZZ, List, List, List) := List => (i, L,ingoingList,tauList) -> (
+    if i === 0 then return L;
+    if i === 1 then return theta (L, ingoingList);
+    theta(pos theta(i-1,
+	    L,ingoingList,tauList),ingoingList) -
+         tau (pos theta(i-2,
+	    L, ingoingList, tauList), tauList)
     )
-neg = L -> (
-    R := ring L;
-    cfs := coeffs L;
-    (matrix{for a in cfs list if a < 0 then -a else 0}
-        * transpose vars R)_(0,0)
-    ) 
-///
+tau = method()
+tau (List,List) := List => (L, tauList) ->
+     dot(L,tauList)
+pos = method()
+pos List := List => L -> apply(#L, i->
+    if L_i > 0 then L_i else 0)
+neg = method()
+neg List := List => L -> apply(#L, i->
+    if L_i < 0 then - L_i else 0)
 
-///
-restart
-needsPackage "AR"
-debug AR
-pos(x_4-3*x_5)
-neg(x_4 - 3*x_5)
-theta(x_4)
-for x in gens R list theta x
-theta(1, x_4)
-theta(2, x_4)
-theta(3, x_4)
-theta(4, x_4)
-theta(5, x_4)
-theta(6, x_4)
-theta(7, x_4)
-theta(8, x_4)
-alph = x_4
-netList apply(15, i -> theta(i, x_4))
-netList apply(15, i -> theta(i, x_3))
-netList apply(15, i -> theta(i, x_5))
-netList apply(15, i -> theta(i, x_1 + x_3 + x_4 + x_5 + x_7))
 
-///
 -* Documentation section *-
 beginDocumentation()
 
@@ -715,7 +657,26 @@ Node
 
 ///
 restart
-loadPackage "AR"
+debug loadPackage "AR"
+ingoingList = {
+    {0,0,1,1,1},
+    {0,0,0,0,1},
+    {1,0,0,0,0},
+    {1,0,0,0,0},
+    {1,1,0,0,0}}
+
+tauList = {
+    {1,0,0,0,0},
+    {0,1,0,0,0},
+    {0,0,0,1,0},
+    {0,0,1,0,0},
+    {0,0,0,0,1}
+    }
+(x1,x3,x4,x5,x7) =
+    toSequence entries id_(ZZ^5)
+
+netList apply(10,
+    i-> theta(i,x7, ingoingList, tauList))
 ///
 end--
 -*
