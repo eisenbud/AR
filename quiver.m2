@@ -23,6 +23,8 @@ identify(HashTable, Module) := (H, M) -> identify(keys H, M)
 
 index(HashTable, Nothing) := (Q, M) -> null
 index(HashTable, Module)  := (Q, M) -> try ModuleDictionary#(identify_Q M)
+index(HashTable, Complex) := (Q, C) -> demark_" <- " apply(values C.module,
+    M -> net \ index_Q \ summands' M)
 
 alias = M -> (
     if (ind := identify(ModuleDictionary, M)) =!= null
@@ -79,28 +81,24 @@ visit(ARQuiver, Complex) := opts -> (Q, C) -> (
 visit(ARQuiver, Matrix)  := opts -> (Q, f) -> (
     if isSurjective f then (
 	visit(Q, tars := { target f }, opts);
-	visit(Q, srcs := newSummands_Q source f, opts);
+	visit(Q, srcs := summands' source f, opts);
     );
     if isInjective  f then (
 	visit(Q, srcs = { source f }, opts);
-	visit(Q, tars = newSummands_Q target f, opts);
+	visit(Q, tars = summands' target f, opts);
     );
 
-    table(tars, srcs, (tar, src) -> (
-	    tar = identify_Q tar;
-	    src = identify_Q src;
-	    if tar =!= null then (
-		if isSurjective f then (
-		    Q#tar.incoming = identify_Q \ srcs;
-		    if src =!= null and instance(Q#src.outgoing, MutableList)
-		    then Q#src.outgoing = append(Q#src.outgoing, identify_Q tar));
+    table(nonnull(identify_Q \ tars), nonnull(identify_Q \ srcs),
+	(tar, src) -> (
+	    if isSurjective f then (
+		Q#tar.incoming = srcs; -- List
+		if instance(Q#src.outgoing, MutableList)
+		then Q#src.outgoing = append(Q#src.outgoing, tar);
 	    );
-	    if src =!= null then (
-		if isInjective f then (
-		    Q#src.outgoing = identify_Q \ tars;
-		    if tar =!= null and instance(Q#tar.incoming, MutableList)
-		    then Q#tar.incoming = append(Q#tar.incoming, identify_Q tar));
-	    )
+	    if isInjective f then (
+		Q#src.outgoing = identify_Q \ tars;
+		if instance(Q#tar.incoming, MutableList)
+		then Q#tar.incoming = append(Q#tar.incoming, src));
 	)
     )
 )
@@ -132,6 +130,13 @@ explore = (Q, n, Ms, Ss) -> (
     apply(Ms, M -> visit(Q, M, LengthLimit => n));
     Q)
 
+
+matrix ARQuiver := o -> Q -> (
+    matrix table(#keys Q, #keys Q,
+	(i,j) -> number(Q#(Q_i).incoming,
+	    M -> j == index_ModuleDictionary M)))
+
+end --
 
 -- E7
 kk = ZZ/101

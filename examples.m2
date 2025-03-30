@@ -8,8 +8,7 @@ R = kk[x,y, Degrees => {n-2, 2}]/(x^2*y + y^(n-1))
 M = prune syzygy(2, coker vars R)
 
 D5 = new ARQuiver
-explore(D5, 10, {M}, {symbol M})
-see D5
+see explore(D5, 10, {M}, {symbol M})
 
 
 D5H = hashTable for p in pairs D5 list (
@@ -27,14 +26,20 @@ netList D5quiver
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-kk = ZZ/101
+kk = ZZ/32009
 n = 5
 R = kk[x,y,z, Degrees => {n-2, 2, n-1}]/(x^2*y + y^(n-1) + z^2)
 M = prune syzygy(2, coker vars R)
 
-D5 = new ARQuiver
-explore(D5, 10, {M}, {symbol M})
-see D5
+see explore(D5 = new ARQuiver, 10, {M}, {symbol M})
+
+m = (matrix D5)_{1..5}^{1..5}
+ingoingList = entries m
+tauList = entries id_(ZZ^5)
+matrix apply(10,
+    i -> theta(i, tauList_4, ingoingList, tauList))
+
+
 
 debug DirectSummands
 tallySummands keys D5
@@ -61,7 +66,7 @@ translates = hashTable {1 => {1}, 2 => {},
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-kk = ZZ/101
+kk = ZZ/32003
 n = 6
 R = kk[x,y, Degrees => {n-2, 2}]/(x^2*y + y^(n-1))
 M = prune syzygy(2, coker vars R)
@@ -104,7 +109,21 @@ summands M
 Ms = {R^1, M}
 
 E7 = new ARQuiver
-explore(E7, 5, {M}, {symbol M}) 
+explore(E7, 10, {M}, {symbol M}) 
+
+-- E7_0: {2:1}     <- 0 <- {2:1}     |   <~ 0 <~  
+-- E7_1: {0, 2}    <- 1 <- {0, 2}    | 1 <~ 1 <~ 1
+-- E7_2: {1, 3}    <- 2 <- {1, 3}    | 2 <~ 2 <~ 2
+-- E7_3: {2, 4, 6} <- 3 <- {2, 4, 6} | 3 <~ 3 <~ 3
+-- E7_4: {3, 5}    <- 4 <- {3, 5}    | 4 <~ 4 <~ 4
+-- E7_5: {4}       <- 5 <- {4}       | 5 <~ 5 <~ 5
+-- E7_6: {3}       <- 6 <- {3}       | 6 <~ 6 <~ 6
+
+m = (matrix E7)_{1..6}^{1..6}
+ingoingList = entries m
+tauList = entries id_(ZZ^6)
+matrix apply(15,
+    i -> theta(i, tauList_5, ingoingList, tauList))
 
 ses = rightAlmostSplit Ms_1
   isIso(ses_2, Ms) -- new
@@ -217,14 +236,12 @@ ses = rightAlmostSplit Ms_14
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-kk = ZZ/101
+kk = ZZ/32009
 R = kk[x,y,z, Degrees => {6, 4, 9}]/(x^3 + x*y^3 + z^2)
 M = prune syzygy(2, coker vars R)
 res coker lift(relations M, ambient R)
 Ms = {R^1, M}
-
-E7 = new ARQuiver
-explore(E7, 5, {M}, {symbol M}) 
+see explore(E7 = new ARQuiver, 5, {M}, {symbol M}) 
 
 ses = rightAlmostSplit Ms_1
   isIso(ses_0, Ms_1) -- old
