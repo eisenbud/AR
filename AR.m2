@@ -28,7 +28,8 @@ export {
     "knorr", -- knoerrer is correct...
     "AnFactorizations",
     "AnModules",
-
+    "theta",
+    
     "rightAlmostSplit",
     "leftAlmostSplit",
 --    "irreducibles",
@@ -322,6 +323,72 @@ SeeAlso
   inverseTranslate
   rightAlmostSplit
   leftAlmostSplit
+///
+
+Node
+  Key
+   theta
+   (theta, List, List)
+   (theta, ZZ, List, List, List)
+  Headline
+   implements the (iterative) theta operation of Iyama-Wemyss
+   and Nagai.
+  Usage
+   M = theta(L,ingoing)
+   M = theta(n, L, ingoingList, taulist)
+  Inputs
+   L:List
+   n: ZZ
+    number of iterations to make
+   ingoingList: List
+    list of lists of sources of the irreducible maps to each vertex
+   tauList:List
+    List of targets of the translation 
+  Outputs
+   M:List
+    list of multiplicities of each indecomposable
+  Description
+    Text
+     theta is a linear function of the argument L,
+     which represents the direct sum of L_i copies of
+     the i-th indecomposable module. It is used to compute
+     the first syzygy of this module, as follows:
+
+     ingoingList should be the list of lists of sources
+     of irreducible maps;
+
+     tauList should be the list of targets of the translation
+     functor.
+
+     If
+     L is the list {0..0,1,0..0} with a 1 in the i-th place
+     then theta(L, ingoingList) is simply the i-th list in
+     ingoingList.The function theta(i, L, ingoingList, taulist)
+     is defined iteratively: theta(0, L, X,Y) returns X.
+     theta(1, L, ingoingList, Y) returns the i-th list
+     in ingoingLIst. For i \geq 2,
+     theta(i, L, ingoingList, taulist)
+     returns
+     theta(i-1, L, ingoingList, taulist)_+
+     - tau(theta(i-2ingoingList, taulist)_+).
+
+    The syzygy of the module represented by L is represented
+    by the negative part of the sum of all the
+    theta(i, L, ingoingList, taulist).
+
+    It seems that 
+    Tree
+    Code
+    Pre
+    Example
+    CannedExample
+  ExampleFiles
+  Acknowledgement
+  Contributors
+  References
+  Caveat
+  SeeAlso
+  Subnodes
 ///
 
 doc ///

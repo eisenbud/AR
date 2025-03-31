@@ -8,6 +8,8 @@ R = kk[x,y, Degrees => {n-2, 2}]/(x^2*y + y^(n-1))
 M = prune syzygy(2, coker vars R)
 
 D5 = new ARQuiver
+ED5 = explore(D5, 10, {M}, {symbol M})
+
 see explore(D5, 10, {M}, {symbol M})
 
 
@@ -40,7 +42,7 @@ matrix apply(10,
     i -> theta(i, tauList_4, ingoingList, tauList))
 
 
-
+ 
 debug DirectSummands
 tallySummands keys D5
 
@@ -363,11 +365,14 @@ ses = rightAlmostSplit Ms_3
   
 
 
------ RNC degree 5 --------------
+----- RNC degree d --------------
+--------------------------
+--------------------------
 restart
 debug needsPackage "AR"
-load "./quiver.m2"
-     d = 5
+--load "./quiver.m2"
+
+d = 5
      S = ZZ/32003[x_0..x_d]
      mat = matrix{
 	 {x_0..x_(d-1)},
@@ -377,11 +382,74 @@ load "./quiver.m2"
      R = S/I
 
      M = coker (mat ** R)
-     RNC5 = new ARQuiver
-     explore(RNC5, 5, {M}, {symbol M})
-     see RNC5
-         
-     RS = map(R,S)
-     M1 = coker (R**mat)
-     M = apply(d, i -> symmetricPower(i, M1))
-     M/(X -> pdim pushForward(RS, X))
+
+R = kk[x,y,z, Degrees => {6, 4, 9}]/(x^3 + x*y^3 + z^2)
+M = prune syzygy(2, coker vars R)
+res coker lift(relations M, ambient R)
+--Ms = {R^1, see explore(RNC = new ARQuiver, 10, {M}, {symbol M}) 
+Ms = {R^1, M}
+ses = rightAlmostSplit Ms_1
+  isIso(ses_0, Ms_1) 
+  isIso(ses_2, Ms_1) -- old
+  sums = summands ses_1
+  isIso(sums_1, Ms) -- new
+  Ms = append(Ms, sums_1)
+  netList Ms
+
+ses = rightAlmostSplit Ms_2
+  isIso(ses_0, Ms_2) -- old
+  isIso(ses_2, Ms_2) -- old
+  sums = summands ses_1
+  isIso(sums_0, Ms) -- new
+  isIso(sums_1, Ms) -- old
+  Ms = append(Ms, sums_0)
+  netList Ms
+
+ses = rightAlmostSplit Ms_3
+  isIso(ses_0, Ms_3) -- old
+  isIso(ses_2, Ms_3) -- old
+  sums = summands ses_1
+  isIso(sums_0, Ms) -- new
+  isIso(sums_1, Ms) -- new
+  isIso(sums_0, sums_1)
+  isIso(sums_2, Ms) -- old
+  Ms = append(Ms, sums_0)
+  Ms = append(Ms, sums_1)
+  netList Ms
+
+ses = rightAlmostSplit Ms_4
+  isIso(ses_0, Ms_4) -- old
+  isIso(ses_2, Ms_4) -- old
+  sums = summands ses_1
+  isIso(sums_0, Ms) -- new
+  isIso(sums_1, Ms) -- old
+  Ms = append(Ms, sums_0)
+  netList Ms
+
+ses = rightAlmostSplit Ms_5
+  isIso(ses_0, Ms_5) -- old
+  isIso(ses_2, Ms_5) -- old
+  sums = summands ses_1
+  #sums
+  isIso(sums_0, Ms) -- old
+
+ses = rightAlmostSplit Ms_6
+  isIso(ses_0, Ms_6) -- old
+  isIso(ses_2, Ms_6) -- old
+  sums = summands ses_1
+  #sums
+  isIso(sums_0, Ms) -- new
+  isIso(sums_1, Ms) -- old
+  Ms = append(Ms, sums_0)
+  netList Ms
+
+quiv = for m in drop(Ms, 1) list (
+    ses := rightAlmostSplit m;
+    sums := summands ses_1;
+    { first isIso(ses_0, Ms),
+     sort flatten for m in sums list isIso(m, Ms),
+     first isIso(ses_2, Ms)}
+    )
+makeTauList = method()
+makeTauList List := (L) -> (
+    )
