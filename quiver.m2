@@ -14,6 +14,7 @@ importFrom_Core { "moduleAbbrv", "ReverseDictionary", "sortBy",
 
 -- TODO: reindex for each Q
 ModuleDictionary = new MutableHashTable
+Triangles = new MutableHashTable
 
 if instance(see, Symbol) then see = method()
 
@@ -38,16 +39,17 @@ ARQuiver.GlobalReleaseHook = globalReleaseFunction
 
 ARQuiver _ ZZ := memoize((Q, i) -> first select(keys Q, M -> i === index_ModuleDictionary M))
 
-arrows = method()
-arrows   ARQuiver := Q -> flatten apply(keys Q, M -> apply(toList Q#M.incoming, N -> index_Q N => index_Q M))
-vertices ARQuiver := Q -> (sortBy index_ModuleDictionary) keys Q
+arrows-* ARQuiver*-= Q -> VerticalList flatten apply(keys Q, M -> apply(toList Q#M.incoming, N -> index_Q N => index_Q M))
+vertices ARQuiver := Q -> NumberedVerticalList (sortBy index_ModuleDictionary) keys Q
+triangles = Q -> VerticalList keys Triangles
 
 -- warning: repeated arrows are collapsed into a single directed edge
-digraph  ARQuiver := o -> Q -> digraph (toList \ arrows Q, EntryMode => "edges")
-show     ARQuiver := Q -> (
+digraph  ARQuiver := o -> Q -> digraph (arrows Q, EntryMode => "edges")
+show     ARQuiver := Q -> show digraph Q
+show     Digraph  := G -> (
     fn := temporaryFileName() | ".svg";
     addEndFunction( () -> if fileExists fn then removeFile fn );
-    fn << html digraph Q << endl << close;
+    fn << html G << endl << close;
     show URL urlEncode(rootURI | realpath fn))
 
 vertexAbbrv = (Q, i) -> (
@@ -90,7 +92,7 @@ visit(ARQuiver, List)    := opts -> (Q, L) -> apply(
     keys tallySummands L, M -> visit(Q, M, opts))
 
 visit(ARQuiver, Complex) := opts -> (Q, C) -> (
-    applyValues(C.dd.map, f -> visit(Q, f, opts)))
+    Triangles#(index_Q C) ??= applyValues(C.dd.map, f -> visit(Q, f, opts)))
 
 visit(ARQuiver, Matrix)  := opts -> (Q, f) -> (
     if isSurjective f then (
