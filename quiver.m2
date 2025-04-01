@@ -1,4 +1,5 @@
 debug needsPackage "AR"
+needsPackage "Graphs"
 
 tallySummands = L -> tally (
     L  = new MutableList from module \ L;
@@ -8,7 +9,7 @@ tallySummands = L -> tally (
 	then ( b#j = false; L#j = L#i ));
     new List from L)
 
-importFrom_Core { "moduleAbbrv", "ReverseDictionary",
+importFrom_Core { "moduleAbbrv", "ReverseDictionary", "sortBy",
     "getAttribute", "hasAttribute", "setAttribute", "nonnull" }
 
 -- TODO: reindex for each Q
@@ -18,7 +19,7 @@ if instance(see, Symbol) then see = method()
 
 identify = method()
 identify(List, Module) := (L, M) -> if M =!= null then scan(L,
-    N -> if first isIsomorphic(N, M) then break N)
+    N -> if isIso(N, M) then break N)
 identify(HashTable, Module) := (H, M) -> identify(keys H, M)
 
 index(HashTable, Nothing) := (Q, M) -> null
@@ -36,6 +37,18 @@ ARQuiver.GlobalAssignHook = globalAssignFunction
 ARQuiver.GlobalReleaseHook = globalReleaseFunction
 
 ARQuiver _ ZZ := memoize((Q, i) -> first select(keys Q, M -> i === index_ModuleDictionary M))
+
+arrows = method()
+arrows   ARQuiver := Q -> flatten apply(keys Q, M -> apply(toList Q#M.incoming, N -> index_Q N => index_Q M))
+vertices ARQuiver := Q -> (sortBy index_ModuleDictionary) keys Q
+
+-- warning: repeated arrows are collapsed into a single directed edge
+digraph  ARQuiver := o -> Q -> digraph (toList \ arrows Q, EntryMode => "edges")
+show     ARQuiver := Q -> (
+    fn := temporaryFileName() | ".svg";
+    addEndFunction( () -> if fileExists fn then removeFile fn );
+    fn << html digraph Q << endl << close;
+    show URL urlEncode(rootURI | realpath fn))
 
 vertexAbbrv = (Q, i) -> (
     -- moduleAbbrv(M, net Qs | "_" | i)

@@ -43,6 +43,7 @@ makeQuiver List := Ms -> (
 -- there is probably a better way to get this information!
 moduleList = method()
 moduleList MutableHashTable := (ModuleDictionary) -> (
+    error "use 'vertices Q' instead";
     H := hashTable for p in pairs ModuleDictionary list p#1 => p#0;
     for k in sort keys H list H#k
     )
@@ -67,7 +68,7 @@ netList D5ses
 netList D5
 
 elapsedTime see explore(D5 = new ARQuiver, 10, {M}, {symbol M})
-Ms = moduleList ModuleDictionary
+Ms = vertices D5
 
 elapsedTime (D5ses', D5') = makeQuiver Ms
 assert(Ms == D5') -- the 2 quivers have same vertices
@@ -92,7 +93,8 @@ netList D5n2ses'
 netList D5n2'
 
 elapsedTime see explore(D5n2 = new ARQuiver, 10, {M}, {symbol M})
-Ms = moduleList ModuleDictionary
+Ms = vertices D5n2
+show D5n2
 
 elapsedTime (D5n2ses', D5n2') = makeQuiver Ms
 assert(Ms == D5n2') -- the 2 quivers have same vertices
@@ -118,7 +120,7 @@ netList D6ses'
 netList D6'
 
 elapsedTime see explore(D6 = new ARQuiver, 10, {M}, {symbol M})
-Ms = moduleList ModuleDictionary
+Ms = vertices D6
 netList D6ses'
 
 --------------------------
@@ -139,7 +141,7 @@ netList D6n2ses'
 netList D6n2'
 
 elapsedTime see explore(D6n2 = new ARQuiver, 10, {M}, {symbol M})
-Ms = moduleList ModuleDictionary
+Ms = vertices D6n2
 netList D6n2ses'
 
 --------------------------
@@ -160,7 +162,7 @@ netList E7ses'
 netList E7'
 
 elapsedTime see explore(E7 = new ARQuiver, 15, {M}, {symbol M})
-Ms = moduleList ModuleDictionary
+Ms = vertices E7
 netList E7ses'
 
 --------------------------
@@ -181,7 +183,7 @@ netList E7d2ses'
 netList E7d2'
 
 elapsedTime see explore(E7 = new ARQuiver, 15, {M}, {symbol M})
-Ms = moduleList ModuleDictionary
+Ms = vertices E7
 netList E7d2ses'
 
 --------------------------
@@ -202,7 +204,7 @@ netList E8ses'
 netList E8'
 
 elapsedTime see explore(E8 = new ARQuiver, 15, {M}, {symbol M})
-Ms = moduleList ModuleDictionary
+Ms = vertices E8
 netList E8'
 
 --------------------------
@@ -223,7 +225,7 @@ netList E8d2ses'
 netList E8d2'
 
 elapsedTime see explore(E8d2 = new ARQuiver, 15, {M}, {symbol M})
-Ms = moduleList ModuleDictionary
+Ms = vertices E8d2
 netList E8d2ses'
 
 -------------------------
@@ -252,7 +254,7 @@ kk = ZZ/32009
      netList RNC5'
 
      elapsedTime see explore(RNC5 = new ARQuiver, 10, {M}, {symbol M})
-     Ms = moduleList ModuleDictionary
+     Ms = vertices RNC5
      netList RNC5ses'
 
      -- which modules are syzygy modules?
@@ -296,7 +298,7 @@ kk = ZZ/32009
      netList RNC6'
      
      elapsedTime see explore(RNC6 = new ARQuiver, 15, {M}, {symbol M})
-     Ms = moduleList ModuleDictionary
+     Ms = vertices RNC6
 
 
      elapsedTime (RNC6ses', RNC6') = makeQuiver Ms
