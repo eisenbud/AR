@@ -117,8 +117,8 @@ visit(ARQuiver, Module)  := opts -> (Q, M) -> (
     visit(Q, C0 :=  leftAlmostSplit M, LengthLimit => n);
     visit(Q, C2 := rightAlmostSplit M, LengthLimit => n);
     --
-    label(M, Q#M.translate  = identify_Q        translate M,  1);
-    label(M, Q#M.translate' = identify_Q inverseTranslate M, -1);
+    label(M, Q#M.translate  = identify_Q translate  M,  1);
+    label(M, Q#M.translate' = identify_Q translate' M, -1);
 )
 
 -- modules and symbols

@@ -23,6 +23,7 @@ export {
     "transposeModule",
     "syzygy",
     "translate",
+    "translate'" => "inverseTranslate",
     "inverseTranslate",
     "socle",
     "knorr", -- knoerrer is correct...
