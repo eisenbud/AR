@@ -91,7 +91,7 @@ canonicalDual Module := Module => M -> (
     )
 
 translate = method()
-translate Module := Module => M -> (
+translate Module := Module => M -> M.cache.translate ??= (
     d := dim M;
     Mt := transposeModule M;
     Md := syzygy(d,Mt);
@@ -99,7 +99,7 @@ translate Module := Module => M -> (
     )
 
 inverseTranslate = method()
-inverseTranslate Module := Module => N -> (
+inverseTranslate Module := Module => N -> N.cache.translate' ??= (
     d := dim N;
     R := ring N;
     dualN := canonicalDual N;
@@ -140,7 +140,7 @@ socle Module := Module => M -> (
     )
 
 rightAlmostSplit = method()
-rightAlmostSplit Module := Complex => M -> (
+rightAlmostSplit Module := Complex => M -> M.cache.rightAlmostSplit ??= (
     --produces 0->N->E->M->0 almost split
     N := translate M;
     if N == 0 then return complex {N};

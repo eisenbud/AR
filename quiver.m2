@@ -24,11 +24,12 @@ identify(HashTable, Module) := (H, M) -> identify(keys H, M)
 index(HashTable, Nothing) := (Q, M) -> null
 index(HashTable, Module)  := (Q, M) -> try ModuleDictionary#(identify_Q M)
 index(HashTable, Complex) := (Q, C) -> demark_" <- " apply(values C.module,
-    M -> net \ index_Q \ summands' M)
+    M -> toString(index_Q \ summands' M))
 
 alias = M -> (
-    if (ind := identify(ModuleDictionary, M)) =!= null
-    then ind else ModuleDictionary#M = #ModuleDictionary);
+    M = identify(ModuleDictionary, M) ?? M;
+    ModuleDictionary#M ??= #ModuleDictionary;
+    M)
 
 ARQuiver = new Type of MutableHashTable
 ARQuiver.GlobalAssignHook = globalAssignFunction
@@ -104,10 +105,10 @@ visit(ARQuiver, Matrix)  := opts -> (Q, f) -> (
 )
 
 visit(ARQuiver, Module)  := opts -> (Q, M) -> (
-    M = prune M;
+    M = alias prune M;
     n := opts.LengthLimit - 1;
+    if n == 0 then printerr "warning: hit length limit, quiver may not be complete!";
     if n < 0 or M == 0 or identify_Q M =!= null then return {};
-    alias M;
     Q#M = new MutableHashTable from {
 	symbol incoming => new MutableList,
 	symbol outgoing => new MutableList,
