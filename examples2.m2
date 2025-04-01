@@ -39,6 +39,14 @@ makeQuiver List := Ms -> (
     (allLines, Ms)
     )
 
+-- the input should be ModuleDictionary, right after explore is called...
+-- there is probably a better way to get this information!
+moduleList = method()
+moduleList MutableHashTable := (ModuleDictionary) -> (
+    H := hashTable for p in pairs ModuleDictionary list p#1 => p#0;
+    for k in sort keys H list H#k
+    )
+
 end--
 
 --------------------------
@@ -59,14 +67,20 @@ netList D5ses
 netList D5
 
 elapsedTime see explore(D5 = new ARQuiver, 10, {M}, {symbol M})
-D5
+Ms = moduleList ModuleDictionary
+
+elapsedTime (D5ses', D5') = makeQuiver Ms
+assert(Ms == D5') -- the 2 quivers have same vertices
+-- TODO: check that the data from 'see D5' and D5ses' matches up:
+see D5
+netList D5ses'
 --------------------------
 -- D5 dim=2 --------------
 --------------------------
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009 -- has a root of 1.
 n = 5
@@ -78,7 +92,13 @@ netList D5n2ses'
 netList D5n2'
 
 elapsedTime see explore(D5n2 = new ARQuiver, 10, {M}, {symbol M})
-D5n2
+Ms = moduleList ModuleDictionary
+
+elapsedTime (D5n2ses', D5n2') = makeQuiver Ms
+assert(Ms == D5n2') -- the 2 quivers have same vertices
+-- TODO: check that the data from 'see D5' and D5ses' matches up:
+see D5n2
+netList D5n2ses'
 
 --------------------------
 -- D6 dim=1 --------------
@@ -86,7 +106,7 @@ D5n2
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009 -- has a root of 1.
 n = 6
@@ -98,6 +118,7 @@ netList D6ses'
 netList D6'
 
 elapsedTime see explore(D6 = new ARQuiver, 10, {M}, {symbol M})
+Ms = moduleList ModuleDictionary
 netList D6ses'
 
 --------------------------
@@ -106,7 +127,7 @@ netList D6ses'
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009 -- has a root of 1.
 n = 6
@@ -118,6 +139,7 @@ netList D6n2ses'
 netList D6n2'
 
 elapsedTime see explore(D6n2 = new ARQuiver, 10, {M}, {symbol M})
+Ms = moduleList ModuleDictionary
 netList D6n2ses'
 
 --------------------------
@@ -126,7 +148,7 @@ netList D6n2ses'
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009
 R = kk[x,y, Degrees => {6, 4}]/(x^3 + x*y^3)
@@ -138,6 +160,7 @@ netList E7ses'
 netList E7'
 
 elapsedTime see explore(E7 = new ARQuiver, 15, {M}, {symbol M})
+Ms = moduleList ModuleDictionary
 netList E7ses'
 
 --------------------------
@@ -146,7 +169,7 @@ netList E7ses'
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009
 R = kk[x,y,z, Degrees => {6, 4, 9}]/(x^3 + x*y^3 + z^2)
@@ -158,6 +181,7 @@ netList E7d2ses'
 netList E7d2'
 
 elapsedTime see explore(E7 = new ARQuiver, 15, {M}, {symbol M})
+Ms = moduleList ModuleDictionary
 netList E7d2ses'
 
 --------------------------
@@ -166,7 +190,7 @@ netList E7d2ses'
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009
 R = kk[x,y, Degrees => {5, 3}]/(x^3 + y^5)
@@ -178,6 +202,7 @@ netList E8ses'
 netList E8'
 
 elapsedTime see explore(E8 = new ARQuiver, 15, {M}, {symbol M})
+Ms = moduleList ModuleDictionary
 netList E8'
 
 --------------------------
@@ -186,7 +211,7 @@ netList E8'
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009
 R = kk[x,y,z, Degrees => {10, 6, 15}]/(x^3 + y^5 + z^2)
@@ -198,6 +223,7 @@ netList E8d2ses'
 netList E8d2'
 
 elapsedTime see explore(E8d2 = new ARQuiver, 15, {M}, {symbol M})
+Ms = moduleList ModuleDictionary
 netList E8d2ses'
 
 -------------------------
@@ -206,7 +232,7 @@ netList E8d2ses'
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009
      d = 5
@@ -226,6 +252,7 @@ kk = ZZ/32009
      netList RNC5'
 
      elapsedTime see explore(RNC5 = new ARQuiver, 10, {M}, {symbol M})
+     Ms = moduleList ModuleDictionary
      netList RNC5ses'
 
 -------------------------
@@ -234,7 +261,7 @@ kk = ZZ/32009
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009
      d = 6
@@ -254,4 +281,7 @@ kk = ZZ/32009
      netList RNC6'
      
      elapsedTime see explore(RNC6 = new ARQuiver, 15, {M}, {symbol M})
+     Ms = moduleList ModuleDictionary
      netList RNC6ses'
+
+     elapsedTime (RNC6ses', RNC6') = makeQuiver Ms

@@ -325,14 +325,13 @@ SeeAlso
   leftAlmostSplit
 ///
 
-Node
+///
   Key
    theta
    (theta, List, List)
    (theta, ZZ, List, List, List)
   Headline
-   implements the (iterative) theta operation of Iyama-Wemyss
-   and Nagai.
+   implements the (iterative) theta operation of Iyama-Wemyss and Nagai
   Usage
    M = theta(L,ingoing)
    M = theta(n, L, ingoingList, taulist)
@@ -372,11 +371,11 @@ Node
      theta(i-1, L, ingoingList, taulist)_+
      - tau(theta(i-2ingoingList, taulist)_+).
 
-    The syzygy of the module represented by L is represented
-    by the negative part of the sum of all the
-    theta(i, L, ingoingList, taulist).
+     The syzygy of the module represented by L is represented
+     by the negative part of the sum of all the
+     theta(i, L, ingoingList, taulist).
 
-    It seems that 
+     It seems that 
     Tree
     Code
     Pre
