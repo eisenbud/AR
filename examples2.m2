@@ -47,7 +47,7 @@ end--
 restart
 debug needsPackage "AR"
 load "./quiver.m2"
-load "./mes-examples.m2"
+load "./examples2.m2"
 
 kk = ZZ/32009 -- has a root of 1.
 n = 5
