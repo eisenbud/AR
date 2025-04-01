@@ -255,6 +255,21 @@ kk = ZZ/32009
      Ms = moduleList ModuleDictionary
      netList RNC5ses'
 
+     -- which modules are syzygy modules?
+     for i from 1 to #Ms - 1 list (
+       sums = summands syzygy(1, Ms_i);
+       for m in sums list isIso(m, Ms)
+       )
+-- +---+---+---+---+
+-- |{4}|   |   |   |
+-- +---+---+---+---+
+-- |{4}|{4}|{4}|   |
+-- +---+---+---+---+
+-- |{4}|{4}|   |   |
+-- +---+---+---+---+
+-- |{4}|{4}|{4}|{4}|
+-- +---+---+---+---+
+
 -------------------------
 -- RNC6 -----------------
 -------------------------
@@ -282,6 +297,26 @@ kk = ZZ/32009
      
      elapsedTime see explore(RNC6 = new ARQuiver, 15, {M}, {symbol M})
      Ms = moduleList ModuleDictionary
-     netList RNC6ses'
+
 
      elapsedTime (RNC6ses', RNC6') = makeQuiver Ms
+     netList RNC6ses'
+     see RNC6
+     
+     for i from 1 to #Ms - 1 list (
+       sums = summands syzygy(1, Ms_i);
+       for m in sums list isIso(m, Ms)
+       )
+-- Note: only Ms_3 is a syzygy module, occurs with different weights.
+-- +---+---+---+---+---+
+-- |{3}|   |   |   |   |
+-- +---+---+---+---+---+
+-- |{3}|{3}|{3}|   |   |
+-- +---+---+---+---+---+
+-- |{3}|{3}|{3}|{3}|{3}|
+-- +---+---+---+---+---+
+-- |{3}|{3}|   |   |   |
+-- +---+---+---+---+---+
+-- |{3}|{3}|{3}|{3}|   |
+-- +---+---+---+---+---+
+     
