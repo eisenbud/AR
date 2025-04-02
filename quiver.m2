@@ -25,8 +25,7 @@ identify(HashTable, Module) := (H, M) -> identify(keys H, M)
 
 index(HashTable, Nothing) := (Q, M) -> null
 index(HashTable, Module)  := (Q, M) -> try ModuleDictionary#(identify_Q M)
-index(HashTable, Complex) := (Q, C) -> demark_" <- " apply(values C.module,
-    M -> toString(index_Q \ summands' M))
+index(HashTable, Complex) := (Q, C) -> apply(reverse values C.module, M -> (index_Q \ summands' M))
 
 alias = M -> (
     M = identify(ModuleDictionary, M) ?? M;
@@ -92,8 +91,10 @@ visit(ARQuiver, List)    := opts -> (Q, L) -> apply(
     keys tallySummands L, M -> visit(Q, M, opts))
 
 visit(ARQuiver, Complex) := opts -> (Q, C) -> (
-    comp := applyValues(C.dd.map, f -> visit(Q, f, opts));
-    Triangles#(index_Q C) ??= comp)
+    key := index_Q C;
+    if key === {{}} then return;
+    if all(flatten key, i -> i =!= null) then return;
+    Triangles#(index_Q C) ??= applyValues(C.dd.map, f -> visit(Q, f, opts)))
 
 visit(ARQuiver, Matrix)  := opts -> (Q, f) -> (
     if isSurjective f then (

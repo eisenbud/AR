@@ -517,10 +517,28 @@ Ms = summands M
 isIso(Ms_0, Ms_1)
 Ms = {Ms_0, Ms_1}
 
-     elapsedTime see explore(Q = new ARQuiver, 15, Ms, {symbol M0, symbol M1})
-     Ms = vertices Q
+elapsedTime see explore(Q = new ARQuiver, 15, Ms, {symbol M0, symbol M1})
+
+Ms = vertices Q
 arrows Q
 triangles Q
+summands (leftAlmostSplit Q_1)_1
 (triangles Q)_1
 show Q
 Triangles
+
+
+--------------------------------
+restart
+debug needsPackage "AR"
+load "./quiver.m2"
+load "./examples2.m2"
+
+kk = ZZ/32009
+S = kk[x,y,z]
+R = quotient ideal(y^2*z - x*(x+z)*(x-z))
+F = res(coker vars R, LengthLimit => 4)
+M = coker F.dd_3
+summands M
+
+elapsedTime see explore(Q = new ARQuiver, 3, {M}, {symbol M})
