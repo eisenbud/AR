@@ -10,7 +10,8 @@ tallySummands = L -> tally (
     new List from L)
 
 importFrom_Core { "moduleAbbrv", "ReverseDictionary", "sortBy",
-    "getAttribute", "hasAttribute", "setAttribute", "nonnull" }
+    "getAttribute", "hasAttribute", "setAttribute", "nonnull",
+    "deepApply" }
 
 -- TODO: reindex for each Q
 ModuleDictionary = new MutableHashTable
@@ -25,7 +26,10 @@ identify(HashTable, Module) := (H, M) -> identify(keys H, M)
 
 index(HashTable, Nothing) := (Q, M) -> null
 index(HashTable, Module)  := (Q, M) -> try ModuleDictionary#(identify_Q M)
-index(HashTable, Complex) := (Q, C) -> apply(reverse values C.module, M -> (index_Q \ summands' M))
+index(HashTable, Complex) := (Q, C) -> fold(
+    apply(reverse values C.module,
+	M -> (index_Q \ summands' M)),
+    (a,b) -> a => b)
 
 alias = M -> (
     M = identify(ModuleDictionary, M) ?? M;
@@ -90,11 +94,14 @@ visit = method(Options => { LengthLimit => 10 })
 visit(ARQuiver, List)    := opts -> (Q, L) -> apply(
     keys tallySummands L, M -> visit(Q, M, opts))
 
+flatten Option := List => opts -> deepApply(opts, x -> if instance(x, Option) then toList x else x)
+
 visit(ARQuiver, Complex) := opts -> (Q, C) -> (
     key := index_Q C;
-    if key === {{}} then return;
+    if key === {null} then return;
     if all(flatten key, i -> i =!= null) then return;
-    Triangles#(index_Q C) ??= applyValues(C.dd.map, f -> visit(Q, f, opts)))
+    applyValues(C.dd.map, f -> visit(Q, f, opts));
+    Triangles#(index_Q C) ??= C)
 
 visit(ARQuiver, Matrix)  := opts -> (Q, f) -> (
     if isSurjective f then (
