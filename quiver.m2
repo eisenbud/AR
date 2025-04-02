@@ -72,7 +72,7 @@ see ARQuiver := Q -> (
 )
 
 Label = new SelfInitializingType of BasicList
-net Label := L -> L#0 | if L#1 == 0 then "" else net [L#1]
+net Label := L -> net L#0 | if L#1 == 0 then "" else net [L#1]
 Label + ZZ := (L, n) -> Label {L#0, L#1+n}
 Label - ZZ := (L, n) -> Label {L#0, L#1-n}
 label = (M, N, n) -> if not hasAttribute(N, ReverseDictionary) then (
@@ -92,7 +92,8 @@ visit(ARQuiver, List)    := opts -> (Q, L) -> apply(
     keys tallySummands L, M -> visit(Q, M, opts))
 
 visit(ARQuiver, Complex) := opts -> (Q, C) -> (
-    Triangles#(index_Q C) ??= applyValues(C.dd.map, f -> visit(Q, f, opts)))
+    comp := applyValues(C.dd.map, f -> visit(Q, f, opts));
+    Triangles#(index_Q C) ??= comp)
 
 visit(ARQuiver, Matrix)  := opts -> (Q, f) -> (
     if isSurjective f then (
