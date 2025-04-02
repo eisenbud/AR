@@ -39,15 +39,50 @@ makeQuiver List := Ms -> (
     (allLines, Ms)
     )
 
--- the input should be ModuleDictionary, right after explore is called...
--- there is probably a better way to get this information!
-moduleList = method()
-moduleList MutableHashTable := (ModuleDictionary) -> (
-    error "use 'vertices Q' instead";
-    H := hashTable for p in pairs ModuleDictionary list p#1 => p#0;
-    for k in sort keys H list H#k
+outgoingMatrix = method()
+outgoingMatrix(List, List) := Matrix => (allLines, Ms) -> (
+    -- allLines has the graph info, Ms is a list of the modules.
+    -- we only use the number of elements of this list.
+    -- we assume the first element of the list is R^1, and we ignore that
+    -- vertex.
+    n := #Ms - 1;
+    mat := mutableMatrix(ZZ, n, n);
+    for x in allLines do (
+        i := x#2 - 1; -- vertex number, minus one, for zero indexed.
+        outgoing := x#1;
+        for pos in x#1 do if pos =!= 0 then mat_(i, pos-1) = 1;
+        );
+    matrix mat
     )
 
+incomingMatrix = method()
+incomingMatrix(List, List) := Matrix => (allLines, Ms) -> (
+    -- allLines has the graph info, Ms is a list of the modules.
+    -- we only use the number of elements of this list.
+    -- we assume the first element of the list is R^1, and we ignore that
+    -- vertex.
+    n := #Ms - 1;
+    mat := mutableMatrix(ZZ, n, n);
+    for x in allLines do (
+        i := x#0 - 1; -- vertex number, minus one, for zero indexed.
+        incoming := x#1;
+        for pos in x#1 do if pos =!= 0 then mat_(i, pos-1) = 1;
+        );
+    matrix mat
+    )
+
+translates = method()
+-- returns a permutation matrix M --> translate M.
+translates(List, List) := Matrix => (allLines, Ms) -> (
+    n := #Ms - 1;
+    mat := mutableMatrix(ZZ, n, n);
+    for x in allLines do (
+        i := x#0 - 1; -- vertex number, minus one, for zero indexed.
+        tau := x#2 - 1;
+        mat_(tau, i) = 1;
+        );
+    matrix mat
+    )
 end--
 
 --------------------------
@@ -66,6 +101,22 @@ Ms = {R^1, M}
 elapsedTime (D5ses, D5) = makeQuiver Ms
 netList D5ses
 netList D5
+
+-- syzygy stuff
+     -- which modules are syzygy modules?
+     Ms = D5
+     for i from 1 to #Ms - 1 list (
+       sums = summands syzygy(1, Ms_i);
+       for m in sums list isIso(m, Ms)
+       )
+     netList oo
+income = entries incomingMatrix(D5ses, D5)
+taumat = entries translates(D5ses, D5)
+In = entries id_(ZZ^(#D5 - 1))
+theta(1, In_0, income, taumat)
+for j from 0 to #Ms-2 list
+  matrix for i from 1 to 10 list theta(i, In_j, income, taumat)
+---------------
 
 elapsedTime see explore(D5 = new ARQuiver, 10, {M}, {symbol M})
 Ms = vertices D5
