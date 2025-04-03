@@ -22,19 +22,24 @@ if instance(see, Symbol) then see = method()
 identify = method()
 identify(List, Module) := (L, M) -> if M =!= null then scan(L,
     N -> if isIso(N, M) then break N)
-identify(HashTable, Module) := (H, M) -> identify(keys H, M)
+identify(HashTable, Module) := (H, M) -> if H#?M then M else identify(keys H, M)
 
 index(HashTable, Nothing) := (Q, M) -> null
 index(HashTable, Module)  := (Q, M) -> try ModuleDictionary#(identify_Q M)
 index(HashTable, Complex) := (Q, C) -> fold(
     apply(reverse values C.module,
-	M -> (index_Q \ summands' M)),
+	M -> sort(index_Q \ summands' M)),
     (a,b) -> a => b)
 
-alias = M -> (
+alias = method()
+alias Module := M -> (
+    if M == 0 then return;
     M = identify(ModuleDictionary, M) ?? M;
     ModuleDictionary#M ??= #ModuleDictionary;
     M)
+alias Complex := C -> (
+    apply(summands C_1, M -> alias prune M);
+    C) -- Triangles#(index_ModuleDictionary C) ??= C)
 
 ARQuiver = new Type of MutableHashTable
 ARQuiver.GlobalAssignHook = globalAssignFunction
@@ -71,19 +76,20 @@ see ARQuiver := Q -> (
     netList(Boxes => false, apply(pairs H, (i, x) ->
 	    {vertexAbbrv(Q, i), ": ",
 		x#0, " <- ", i, " <- ", x#1, " | ",
-		x#2, " <~ ", i, " <~ ", x#3}))
+		x#3, " ~> ", i, " ~> ", x#2}))
 )
 
 Label = new SelfInitializingType of BasicList
 net Label := L -> net L#0 | if L#1 == 0 then "" else net [L#1]
 Label + ZZ := (L, n) -> Label {L#0, L#1+n}
 Label - ZZ := (L, n) -> Label {L#0, L#1-n}
-label = (M, N, n) -> if not hasAttribute(N, ReverseDictionary) then (
+label = (M, N, n) -> -* if not hasAttribute(N, ReverseDictionary) then *- (
     if hasAttribute(M, ReverseDictionary)
     and instance(name := getAttribute(M, ReverseDictionary), Label)
     then setAttribute(N, ReverseDictionary, name + n))
 
 summands' = memoize(M -> (
+	return summands M;
     L := summands(keys ModuleDictionary, M);
     join(drop(L, -1), summands last L)))
 newSummands = (Q, M) -> select(
@@ -97,56 +103,48 @@ visit(ARQuiver, List)    := opts -> (Q, L) -> apply(
 flatten Option := List => opts -> deepApply(opts, x -> if instance(x, Option) then toList x else x)
 
 visit(ARQuiver, Complex) := opts -> (Q, C) -> (
-    key := index_Q C;
-    if key === {null} then return;
-    if all(flatten key, i -> i =!= null) then return;
-    applyValues(C.dd.map, f -> visit(Q, f, opts));
-    Triangles#(index_Q C) ??= C)
-
-visit(ARQuiver, Matrix)  := opts -> (Q, f) -> (
-    if isSurjective f then (
-	visit(Q, tars := { target f }, opts);
-	visit(Q, srcs := summands' source f, opts);
-    );
-    if isInjective  f then (
-	visit(Q, srcs = { source f }, opts);
-	visit(Q, tars = summands' target f, opts);
-    );
-
-    table(nonnull(identify_Q \ tars), nonnull(identify_Q \ srcs),
-	(tar, src) -> (
-	    if isSurjective f then (
-		Q#tar.incoming = srcs; -- List
-		if instance(Q#src.outgoing, MutableList)
-		then Q#src.outgoing = append(Q#src.outgoing, tar);
-	    );
-	    if isInjective f then (
-		Q#src.outgoing = identify_Q \ tars;
-		if instance(Q#tar.incoming, MutableList)
-		then Q#tar.incoming = append(Q#tar.incoming, src));
-	)
-    )
+    if C == 0 then return C;
+    C = alias prune C;
+    key := index_ModuleDictionary C;
+    if Triangles#?key then return;
+    --
+    tar = identify_ModuleDictionary C_0;
+    mid = identify_ModuleDictionary \ summands C_1;
+    src = identify_ModuleDictionary C_2;
+    --
+    Q#tar.incoming =
+    Q#src.outgoing = mid;
+    --
+    Triangles#key = C;
+    visit(Q, mid, opts);
+    for M in mid do if Q#?M then (
+	if instance(Q#M.outgoing, MutableList) then Q#M.outgoing = append(Q#M.outgoing, tar);
+	if instance(Q#M.incoming, MutableList) then Q#M.incoming = append(Q#M.incoming, src));
 )
 
 visit(ARQuiver, Module)  := opts -> (Q, M) -> (
+    if M == 0 then return M;
     M = alias prune M;
     n := opts.LengthLimit - 1;
     if n == 0 then printerr "warning: hit length limit, quiver may not be complete!";
-    if n < 0 or M == 0 or identify_Q M =!= null then return {};
+    if n < 0 or M == 0 or identify_Q M =!= null then return M;
     Q#M = new MutableHashTable from {
 	symbol incoming => new MutableList,
 	symbol outgoing => new MutableList,
     };
     --
+    label(M, Q#M.translate  = visit(Q, translate  M, LengthLimit => n),  1);
+    label(M, Q#M.translate' = visit(Q, translate' M, LengthLimit => n), -1);
+    --
     visit(Q, C0 :=  leftAlmostSplit M, LengthLimit => n);
     visit(Q, C2 := rightAlmostSplit M, LengthLimit => n);
     --
-    label(M, Q#M.translate  = identify_Q translate  M,  1);
-    label(M, Q#M.translate' = identify_Q translate' M, -1);
+    M
 )
 
 -- modules and symbols
-explore = (Q, n, Ms, Ss) -> (
+explore = method()
+explore(ARQuiver, ZZ, List, List) := (Q, n, Ms, Ss) -> (
     R := ring Ms#0;
     alias module R;
     apply(Ms, alias);
@@ -155,6 +153,9 @@ explore = (Q, n, Ms, Ss) -> (
     apply(Ms, M -> visit(Q, M, LengthLimit => n));
     Q)
 
+explore(ARQuiver, ZZ) := (Q, n) -> (
+    apply(keys ModuleDictionary, M -> visit(Q, M, LengthLimit => n));
+    Q)
 
 matrix ARQuiver := o -> Q -> (
     matrix table(#keys Q, #keys Q,

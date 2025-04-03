@@ -541,4 +541,13 @@ F = res(coker vars R, LengthLimit => 4)
 M = coker F.dd_3
 summands M
 
-elapsedTime see explore(Q = new ARQuiver, 3, {M}, {symbol M})
+Q = new ARQuiver
+elapsedTime see explore(Q, 2, {M}, {symbol M})
+elapsedTime see explore(Q, 1)
+
+-- Q_0: {}     <- 0 <- {}     |   ~> 0 ~>  
+-- Q_1: {2}    <- 1 <- {2}    | 1 ~> 1 ~> 1
+-- Q_2: {1, 3} <- 2 <- {1, 3} | 2 ~> 2 ~> 2
+-- Q_3: {1, 5} <- 3 <- {1, 5} | 3 ~> 3 ~> 3
+
+vertices Q
