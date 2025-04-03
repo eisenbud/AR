@@ -96,16 +96,19 @@ translate Module := Module => M -> M.cache.translate ??= (
     d := dim M;
     Mt := transposeModule M;
     Md := syzygy(d,Mt);
-    canonicalDual Md
-    )
+    N := canonicalDual Md;
+    N.cache.translate' ??= M;
+    N)
 
 inverseTranslate = method()
 inverseTranslate Module := Module => N -> N.cache.translate' ??= (
     d := dim N;
     R := ring N;
     dualN := canonicalDual N;
-    syzygy(d,transposeModule dualN)
-    )
+    M := syzygy(d,transposeModule dualN);
+    M.cache.translate ??= N;
+    M)
+
 ///
 restart
 loadPackage("AR", Reload => true)
