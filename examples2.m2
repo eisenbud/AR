@@ -27,6 +27,27 @@ handleRightNode(List, ZZ) := (Ms, ind) -> (
     ({third3, sort middle2, first1}, Ms)
     )
 
+handleLeftNode = method()
+handleLeftNode(List, ZZ) := (Ms, ind) -> (
+    ses := leftAlmostSplit Ms_ind;
+    first1 := isIsoToOne(ses_0, Ms);
+    if first1 === null then (
+        first1 = #Ms;
+        Ms = append(Ms, ses_0);
+        );
+    third3 := isIsoToOne(ses_2, Ms); -- this is Ms_ind...
+    if third3 === null then error "this module should exist alrady...";
+    sums := summands ses_1;
+    middle2 := for m in sums list (
+        loc := isIsoToOne(m, Ms);
+        if loc === null then (
+            loc = #Ms;
+            Ms = append(Ms, m);
+            );
+        loc);
+    ({third3, sort middle2, first1}, Ms)
+    )
+
 makeQuiver = method()
 makeQuiver List := Ms -> (
     i := 1;
@@ -502,6 +523,9 @@ invariantsCna(ZZ, ZZ) := List => (n, a) -> (
     {s^n} | middles | {t^n}
     )
 
+-------------
+-- C_(5,2) --
+-------------
 invs = invariantsCna(5,2)
 invs = invs_{0,1,2,5}
 invs/degree
@@ -527,7 +551,6 @@ summands (leftAlmostSplit Q_1)_1
 show Q
 Triangles
 
-
 --------------------------------
 restart
 debug needsPackage "AR"
@@ -551,3 +574,134 @@ elapsedTime see explore(Q, 1)
 -- Q_3: {1, 5} <- 3 <- {1, 5} | 3 ~> 3 ~> 3
 
 vertices Q
+
+-- This stuff below was what MES had.
+
+     elapsedTime (ses, Ms') = makeQuiver Ms
+     Ms = Ms'
+     netList ses
+     
+     -- which modules are syzygy modules?
+     for i from 1 to #Ms - 1 list (
+       sums = summands syzygy(1, Ms_i);
+       for m in sums list isIso(m, Ms)
+       )
+     netList oo
+
+-- the following is currently wrong...
+-- maybe because I am using the wrong translate function?
+income = entries incomingMatrix(ses, Ms)
+taumat = entries translates(ses, Ms)
+In = entries id_(ZZ^(#Ms - 1))
+theta(1, In_0, income, taumat)
+for j from 0 to #Ms-2 list
+  matrix for i from 1 to 10 list theta(i, In_j, income, taumat)
+
+
+-------------
+-- C_(5,3) --
+-------------
+invs = invariantsCna(7,2)
+invs = invs_{0,1,2,3,7}
+invs/degree
+S = kk[x,y,z,w,u, Degrees => invs/degree]
+phi = map(A, S, invs)
+I = ker phi
+isHomogeneous I
+R = S/I
+F = res(coker vars R, LengthLimit => 4)
+M = coker F.dd_3
+isHomogeneous M
+Ms = summands M
+isIso(Ms_0, Ms_1)
+isIso(Ms_1, Ms_2)
+debug DirectSummands
+Ms = keys tallySummands Ms
+Ms/ring
+
+load "./quiver.m2"
+     elapsedTime see explore(Q = new ARQuiver, 15, Ms, {symbol M0, symbol M1})
+     Ms = vertices Q
+arrows Q
+triangles Q
+(triangles Q)_1
+show Q
+Triangles
+
+     elapsedTime (ses, Ms') = makeQuiver Ms
+     Ms === Ms'
+     netList ses, triangles Q
+     
+     -- which modules are syzygy modules?
+     for i from 1 to #Ms - 1 list (
+       sums = summands syzygy(1, Ms_i);
+       for m in sums list isIso(m, Ms)
+       )
+     netList oo
+
+-- the following is currently wrong...
+-- maybe because I am using the wrong translate function?
+income = entries incomingMatrix(ses, Ms)
+taumat = entries translates(ses, Ms)
+In = entries id_(ZZ^(#Ms - 1))
+theta(1, In_0, income, taumat)
+for j from 0 to #Ms-2 list
+  matrix for i from 1 to 10 list theta(i, In_j, income, taumat)
+  
+
+restart
+debug needsPackage "AR"
+load "./quiver.m2"
+load "./examples2.m2"
+kk = ZZ/32009
+kk = ZZ/101
+S = kk[x,y,z]
+I = ideal(y^2*z - x*(x-z)*(x+z))
+R = S/I
+F = res(coker vars R, LengthLimit => 5)
+M1 = coker F.dd_3
+M2 = prune syzygy(1, M1)
+Ms = {R^1, M1, M2}
+(ses, Ms) = handleRightNode(Ms, 1)
+M3 = Ms_3
+M4 = prune syzygy(1, M3)
+Ms = {R^1, M1, M2, M3, M4}
+(ses, Ms) = handleRightNode(Ms, 2)
+(ses, Ms) = handleRightNode(Ms, 3) -- gets M5
+M5 = Ms#5
+M6 = prune syzygy(1, M5)
+summands M6
+Ms = {R^1, M1, M2, M3, M4, M5, M6}
+(ses, Ms) = handleRightNode(Ms, 4)
+(ses, Ms) = handleRightNode(Ms, 5)
+M7 = Ms#7
+elapsedTime (ses, Ms') = makeQuiver Ms
+     Ms === Ms'
+     netList ses, triangles Q
+
+M2 = prune syzygy(1, M)
+Ms = {R^1, M, M2}
+
+isIso(M, M2)
+(ses, Ms) = handleRightNode(Ms, 1)
+M3 = prune syzygy(1, Ms_3)
+isIso(Ms_3, M3)
+
+needsPackage "RationalPoints2"
+methods rationalPoints
+pts = rationalPoints(ideal R, Projective => true);
+#pts
+pts_0
+Ipt = trim minors(2, vars R || matrix{pts_0})
+N1 = prune Hom(Ipt, R)
+N2 = prune syzygy(1, N1)
+isIso(N1,N2)
+Ms = {R^1, N1, N2}
+
+Ms = {R^1, M, M2}
+(ses, Ms) = handleRightNode(Ms, 1)
+(ses, Ms) = handleRightNode(Ms, 2)
+(ses, Ms) = handleRightNode(Ms, 3)
+(ses, Ms) = handleRightNode(Ms, 4)
+(ses, Ms) = handleRightNode(Ms, 5)
+
