@@ -17,7 +17,7 @@ newPackage(
 
 export {
     "isIso",
-    "isomorphism",
+--    "isomorphism",
     "Isomorphisms",
     "canonicalDual",
     "transposeModule",
@@ -36,6 +36,13 @@ export {
 --    "irreducibles",
     --Symbols:
     "omega",
+
+    "MESQuiver",
+    "mesQuiver",
+    "compute",
+    "makeQuiver",
+    "ses",
+    "modules"
     }
 
 myRing = GF 8
@@ -52,7 +59,7 @@ isIso(Module, Module) := Boolean => (M, N) -> (
     eq
     )
 
-isomorphism = method()
+--isomorphism = method()
 isomorphism(Module, Module) := Matrix => (M, N) -> (
     result := M.cache.Isomorphisms#N ??= last isIsomorphic(M,N);
     if result === null then error "modules not isomorphic";
@@ -287,6 +294,173 @@ neg List := List => L -> apply(#L, i->
     if L_i < 0 then - L_i else 0)
 
 
+-----------------------------
+-- Code for constructing a part of the AR quiver
+-- 
+MESQuiver = new Type of MutableHashTable
+compute = method(Options => {Limit => infinity})
+
+-- the following is an internal constructor function.  Do not export.
+mesQuiver = method()
+mesQuiver List := (Ms) -> (
+    R := ring Ms_0;
+    if #Ms === 1 then error "expected at least one non-free CM module -- todo: compute one"; 
+    result := new MESQuiver;
+    result.ring = ring Ms_0;
+    result#"Modules" = Ms;
+    result#"SES" = {};
+    result#"NextLeft" = 1;
+    result#"NextRight" = 1;
+    result)
+
+isIsoToOne = method()
+isIsoToOne(Module, List) := (M, Ms) -> (
+    locs := isIso(M, Ms);
+    if #locs === 0 then return null;
+    if #locs === 1 then return locs#0;
+    error("isomorphic to the following: " | locs);
+    )
+
+handleRightNode = method()
+handleRightNode(List, ZZ) := (Ms, ind) -> (
+    ses := rightAlmostSplit Ms_ind;
+    first1 := isIsoToOne(ses_2, Ms);
+    if first1 === null then (
+        first1 = #Ms;
+        Ms = append(Ms, ses_2);
+        );
+    third3 := isIsoToOne(ses_0, Ms); -- this is Ms_ind...
+    if third3 === null then error "this module should exist alrady...";
+    sums := summands ses_1;
+    middle2 := for m in sums list (
+        loc := isIsoToOne(m, Ms);
+        if loc === null then (
+            loc = #Ms;
+            Ms = append(Ms, m);
+            );
+        loc);
+    ({third3, sort middle2, first1}, Ms)
+    )
+
+handleLeftNode = method()
+handleLeftNode(List, ZZ) := (Ms, ind) -> (
+    ses := leftAlmostSplit Ms_ind;
+    first1 := isIsoToOne(ses_0, Ms);
+    if first1 === null then (
+        first1 = #Ms;
+        Ms = append(Ms, ses_0);
+        );
+    third3 := isIsoToOne(ses_2, Ms); -- this is Ms_ind...
+    if third3 === null then error "this module should exist alrady...";
+    sums := summands ses_1;
+    middle2 := for m in sums list (
+        loc := isIsoToOne(m, Ms);
+        if loc === null then (
+            loc = #Ms;
+            Ms = append(Ms, m);
+            );
+        loc);
+    ({third3, sort middle2, first1}, Ms)
+    )
+
+handleLeftNode MESQuiver := Boolean => Q -> (
+    if Q#"NextLeft" >= #Q#"Modules" then return false;
+    (ses, newMs) := handleLeftNode(Q#"Modules", Q#"NextLeft");
+    Q#"NextLeft" = Q#"NextLeft" + 1;
+    Q#"Modules" = newMs;
+    Q#"SES" = append(Q#"SES", ses);
+    true
+    )
+
+handleRightNode MESQuiver := Boolean => Q -> (
+    if Q#"NextRight" >= #Q#"Modules" then return false;
+    (ses, newMs) := handleRightNode(Q#"Modules", Q#"NextRight");
+    Q#"NextRight" = Q#"NextRight" + 1;
+    Q#"Modules" = newMs;
+    Q#"SES" = append(Q#"SES", ses);
+    true
+    )
+
+makeQuiver = method()
+makeQuiver List := Ms -> (
+    i := 1;
+    thisline := null;
+    allLines := while i < #Ms list (
+        (thisline, Ms) = handleRightNode(Ms, i);
+        i = i+1;
+        thisline
+        );
+    (allLines, Ms)
+    )
+
+compute MESQuiver := MESQuiver => opts -> Q -> (
+    more1 := true;
+    more2 := true;
+    i := 0;
+    while i < opts.Limit and (more1 or more2) do (
+        more1 = handleRightNode Q;
+        more2 = handleLeftNode Q;
+        i = i+1;
+        );
+    Q
+    )
+
+ses = method()
+ses MESQuiver := List => Q -> unique Q#"SES" -- each might be in 2 times
+
+modules = method()
+modules MESQuiver := List => Q -> (
+    Ms := Q#"Modules";
+    for i from 0 to #Ms-1 list i => Ms#i
+    )
+
+outgoingMatrix = method()
+outgoingMatrix(List, List) := Matrix => (allLines, Ms) -> (
+    -- allLines has the graph info, Ms is a list of the modules.
+    -- we only use the number of elements of this list.
+    -- we assume the first element of the list is R^1, and we ignore that
+    -- vertex.
+    n := #Ms - 1;
+    mat := mutableMatrix(ZZ, n, n);
+    for x in allLines do (
+        t := tally x#1;
+        i := x#2 - 1; -- vertex number, minus one, for zero indexed.
+        for pos in keys t do if pos =!= 0 then mat_(i, pos-1) = t#pos;
+        );
+    matrix mat
+    )
+
+incomingMatrix = method()
+incomingMatrix(List, List) := Matrix => (allLines, Ms) -> (
+    -- allLines has the graph info, Ms is a list of the modules.
+    -- we only use the number of elements of this list.
+    -- we assume the first element of the list is R^1, and we ignore that
+    -- vertex.
+    n := #Ms - 1;
+    mat := mutableMatrix(ZZ, n, n);
+    for x in allLines do (
+        t := tally x#1;
+        i := x#0 - 1; -- vertex number, minus one, for zero indexed.
+        for pos in keys t do if pos =!= 0 then mat_(i, pos-1) = t#pos;
+        );
+    matrix mat
+    )
+
+translates = method()
+-- returns a permutation matrix M --> translate M.
+translates(List, List) := Matrix => (allLines, Ms) -> (
+    n := #Ms - 1;
+    mat := mutableMatrix(ZZ, n, n);
+    for x in allLines do (
+        i := x#0 - 1; -- vertex number, minus one, for zero indexed.
+        tau := x#2 - 1;
+        if tau < 0 then continue;
+        mat_(i, tau) = 1;
+        );
+    matrix mat
+    )
+
+
 -* Documentation section *-
 beginDocumentation()
 
@@ -312,6 +486,9 @@ Description
    
    e' = leftAlmostSplit N
    M == prune e'_0
+  Text
+   One can also create the corresponding Auslander-Reiten quivers.
+   See @TO MESQuiver@.
 References
  Yuji Yoshino,
  "Cohen-Macaulay Modules over Cohen-Macaulay Rings",
@@ -327,6 +504,7 @@ SeeAlso
   inverseTranslate
   rightAlmostSplit
   leftAlmostSplit
+  MESQuiver
 ///
 
 ///
@@ -725,6 +903,150 @@ Node
      This shows that N represents the line bundle
 ///
 
+doc ///
+  Key
+    "Using MESQuivers"
+    MESQuiver
+  Headline
+    a simple structure to aid in computing an Auslander-Reiten Quiver
+  Description
+    Text
+      In order to compute an Auslander-Reiten quiver, one can create an object $Q$ of this type as
+      below, and then do {\tt compute Q}.  This finds either all of a number of indecomposable
+      CM modules over the base ring $R$.  Getting information out after the computation is
+      described below as well.
+
+      An {\tt MESQuiver} is initialized using @TO "mesQuiver"@, and computation
+      is initiated with @TO (compute, MESQuiver)@, which optionally takes a {\tt Limit => n} to
+      limit the number of computations that will be performed before stopping.
+    Text
+      As an example, lets consider the dimension 2 $D_5$ surface singularity.
+      Notice that we choose degrees to make this homogeneous.  Considering inhomogeneous
+      input (or evel local ring input) hasn't been considered much, and hasn't been tested.
+    Example
+      kk = ZZ/32009; -- has a root of 1.
+      n = 5;
+      R = kk[x,y,z, Degrees => {n-2, 2, n-1}]/(x^2*y + y^(n-1) + z^2);
+    Text
+      We need to provide some (Cohen-Macaulay) modules to make a {\tt MESQuiver}.
+      Currently, we must provide $R^1$, as well as another indecomposable Cohen-Macaulay $R$-module.
+      We could compute these ahead of time, and maybe we should.
+    Example
+      M = prune syzygy(2, coker vars R)
+      Ms = {R^1, M}
+    Text
+      Now create the {\tt MESQuiver} object, and do the computation.
+    Example
+      Q = mesQuiver Ms
+      compute Q
+    Text
+      Here is the information stored in $Q$.
+    Example
+      peek Q
+    Text
+      Use @TO (modules, MESQuiver)@ to get the list of modules and their indices.  It is also possible to
+      use {\tt Q#"Modules"} to get the list of modules (indices are not provided with this version).
+
+      For this example, there are six indecomposable CM modules.
+    Example
+      netList modules Q
+      Q#"Modules"
+    Text
+      Use @TO (ses, MESQuiver)@ to get the list of lists of indices, indicating the
+      module indices in the short exact sequences constructed.
+    Example
+      netList ses Q
+    Text
+      Here is how to read the output.  All indices refer to to the indecomposable modules {\tt modules Q},
+      and zero refers to the free module $R^1$.
+      Each line refers to a short exact complex, with arrows the usual Macaulay2 way, pointing left.
+      In this example, and in fact in all hypersurface examples, the left/right module is the same.
+      The first line gives:
+      $0 \longleftarrow M_1 \longleftarrow R^1 \bigoplus M_2 \bigoplus M_3 \longleftarrow M_1 \longleftarrow 0.$
+  Caveat
+    (1)The name has been chosen to not interfere with Mahrud's Quiver class.
+
+    (2)There is a chance that the code to decompose a module might fail, as one might need to create
+    a field extension to see it.
+  SeeAlso
+    (compute, MESQuiver)
+    (modules, MESQuiver)
+    (ses, MESQuiver)
+///
+
+doc ///
+  Key
+   mesQuiver
+   (mesQuiver, List)
+  Headline
+    initialize an MESQuiver object to compute AR Quivers
+  Usage
+    Q = mesQuiver Ms
+  Inputs
+   Ms:List
+     of @ofClass Module@, all should be indecomposable CM modules over the same ring
+  Outputs
+   Q:MESQuiver
+  Description
+    Text
+      The first module in the list must be the free module $R^1$.  The second is some choice
+      of indecomposable CM $R$-module.
+    Example
+      R = ZZ/32009[x,y,z, Degrees => {3, 2, 4}]/(x^2*y + y^4 + z^2);
+      M = prune syzygy(2, coker vars R)
+      Ms = {R^1, M}
+      Q = mesQuiver Ms
+      peek Q
+    Example
+      compute Q
+      netList modules Q
+      netList ses Q
+  SeeAlso
+    "Using MESQuivers"
+    MESQuiver
+    (compute, MESQuiver)
+    (modules, MESQuiver)
+    (ses, MESQuiver)
+///
+
+doc ///
+  Key
+   compute
+   (compute, MESQuiver)
+   [compute, Limit]
+  Headline
+    compute some or all of the Auslander-Reiten Quiver of indecomposable CM modules
+  Usage
+    compute Q
+  Inputs
+   Q:MESQuiver
+   Limit => ZZ
+     The number of (left/right) split pairs to run before returning to the user
+  Description
+    Text
+      This function is quite simple: it starts with a list of indecomposable CM modules,
+      and one by one it computes the left and right almost split short exact sequences,
+      with the next module in the list, which has not had its almost split sequence (either right or left)
+      computed yet.  It finds the modules in the middle of the short exact sequence, and
+      then decomposes it, possibly adding new modules to the list of undecomposables.
+    Example
+      R = ZZ/32009[x,y,z, Degrees => {3, 2, 4}]/(x^2*y + y^4 + z^2);
+      M = prune syzygy(2, coker vars R)
+      Ms = {R^1, M}
+      Q = mesQuiver Ms
+      peek Q
+    Example
+      compute Q
+      peek Q
+      netList modules Q
+      netList ses Q
+  SeeAlso
+    "Using MESQuivers"
+    MESQuiver
+    (modules, MESQuiver)
+    (ses, MESQuiver)
+///
+
 ///
 restart
 debug loadPackage "AR"
@@ -748,19 +1070,130 @@ tauList = {
 netList apply(10,
     i-> theta(i,x7, ingoingList, tauList))
 ///
-end--
+
 -*
--* Test section *-
-TEST /// -* [insert short title for this test] *-
--- test code and assertions here
--- may have as many TEST sections as needed
+  restart
+  needsPackage "AR"
+*-
+TEST /// -- testing MESQuiver, Awhich?
+  setRandomSeed 42
+  kk = ZZ/32003
+  R = kk[a,b, Degrees => {5,2}]/(a^2+b^5)
+  M1 = prune ker vars R
+  Q = mesQuiver {R^1, M1}
+  compute Q
+  peek Q
+  netList ses Q
+  netList modules Q
+
+  assert(#modules Q === 3)
+  assert(#ses Q === 2)
+  assert(set ses Q === set {{1, {0,2}, 1}, {2, {1,2}, 2}})
+///
+
+-*
+  restart
+  needsPackage "AR"
+*-
+TEST /// -- testing MESQuiver, D5
+  setRandomSeed 42
+  kk = ZZ/32009 -- has a root of 1.
+  n = 5
+  R = kk[x,y,z, Degrees => {n-2, 2, n-1}]/(x^2*y + y^(n-1) + z^2)
+  M = prune syzygy(2, coker vars R)
+  Ms = {R^1, M}
+  -- this version is simpler, only does Right Nodes
+  elapsedTime (ses1, Ms1) = makeQuiver Ms -- .6 sec
+
+  -- this does both left and right, and takes about twice as long
+  Q = mesQuiver Ms
+  elapsedTime compute Q -- 1.1 sec
+
+  peek Q -- this is all that is contained in Q
+  netList ses Q
+  netList(Q#"SES")
+  netList modules Q
+
+  assert(#modules Q === 6)
+  assert(#ses Q === 5)
+  assert(set ses Q === set {
+          {1, {0, 2, 3}, 1},
+          {2, {1}, 2},
+          {3, {1, 4, 5}, 3},
+          {4, {3}, 4},
+          {5, {3}, 5}})
+///
+
+--------------------------
+-- E7, dim2 --------------
+--------------------------
+-*
+  restart
+  needsPackage "AR"
+*-
+TEST /// -- testing MESQuiver, D5
+  setRandomSeed 42
+  kk = ZZ/32009 -- has a root of 1.
+  R = kk[x,y,z, Degrees => {6, 4, 9}]/(x^3 + x*y^3 + z^2)
+  M = prune syzygy(2, coker vars R)
+  Ms = {R^1, M}
+  -- this version is simpler, only does Right Nodes
+  elapsedTime (ses1, Ms1) = makeQuiver Ms -- 1.2 sec
+
+  -- this does both left and right, and takes about twice as long
+  Q = mesQuiver Ms
+  elapsedTime compute Q -- 1.4 sec
+
+  peek Q -- this is all that is contained in Q
+  netList ses Q
+  netList(Q#"SES")
+  netList modules Q
+
+  assert(#modules Q === 8)
+  assert(#ses Q === 7)
+  assert(set ses Q === set {
+          {1, {0, 2}, 1},
+          {2, {1, 3}, 2},
+          {3, {2, 4, 5}, 3},
+          {4, {3}, 4},
+          {5, {3, 6}, 5},
+          {6, {5, 7}, 6},
+          {7, {6}, 7}})
+///
+
+--------------------------
+-- Elliptic curve --------
+--------------------------
+-*
+  restart
+  needsPackage "AR"
+*-
+TEST ///
+  setRandomSeed 42
+  kk = ZZ/32009
+  S = kk[x,y,z]
+  R = quotient ideal(y^2*z - x*(x+z)*(x-z))
+  F = res(coker vars R, LengthLimit => 4)
+  M = coker F.dd_3
+  assert(# summands M == 1) -- checking indecomposable.  Not sure this is definitive...
+
+  M = coker map(R^2,, {{y, x*(x+z)}, {x-z, y*z}})
+  assert(ann M == 0)
+  Ms = {R^1, M}
+  Q = mesQuiver Ms
+  compute(Q, Limit => 3)  -- only do part of it.
+  -- At this point, feel free to append modules to Q#"Modules"
+  -- BUT: don't change the orders of the modules already there!
+    
+  assert(#modules Q == 5)
+  assert(set ses Q == set {{1, {2}, 1}, {2, {1, 3}, 2}, {3, {4}, 3}})
 ///
 
 end--
 
 -* Development section *-
 restart
-debug needsPackage "AR"
+needsPackage "AR"
 check "AR"
 
 uninstallPackage "AR"
